@@ -19,7 +19,9 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  setDoc
+  setDoc,
+  where,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -48,7 +50,9 @@ export const fb = {
   orderBy,
   query,
   serverTimestamp,
-  setDoc
+  setDoc,
+  where,
+  Timestamp
 };
 
 export const authFns = {
