@@ -1,19 +1,24 @@
-<!-- sped.html -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Behavior Tracker — SPED Admin</title>
+  <title>Behavior Tracker — SPED Hub</title>
+
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Charts for Dashboard -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
+
 <body>
   <div class="container">
     <header class="header">
-      <h1>Behavior Tracker — SPED Admin</h1>
-      <p class="sub">Manage behavior buttons teachers see.</p>
+      <h1>Behavior Tracker — SPED Hub</h1>
+      <p class="sub">Manage buttons, view patterns, export data.</p>
     </header>
 
+    <!-- 🔐 Login bar -->
     <div class="card" style="margin-bottom:14px;">
       <div class="row" style="justify-content:space-between;">
         <div>
@@ -27,36 +32,118 @@
       </div>
     </div>
 
-    <main class="main">
-      <section class="card" id="adminPanel" style="display:none;">
-        <h2>Teacher Buttons</h2>
-        <div class="row" style="margin-top:12px;">
-  <button id="exportCsvBtn" class="btn btn-blue">Export Logs (CSV)</button>
-</div>
+    <!-- ❌ No access -->
+    <section class="card" id="noAccessPanel" style="display:none; margin-bottom:14px;">
+      <h2>No Access</h2>
+      <p class="muted">Your email isn’t on the SPED admin list for this tool.</p>
+    </section>
 
-        <div class="row">
-          <input id="newBehaviorName" class="input" type="text" placeholder="Add behavior (e.g., Elopement)" />
-          <select id="newBehaviorCategory" class="input">
-            <option>Physical Aggression</option>
-            <option>Verbal Aggression</option>
-            <option>Disruption</option>
-            <option>Noncompliance</option>
-            <option>Other</option>
-          </select>
-          <button id="addBehaviorBtn" class="btn btn-green">Add</button>
+    <!-- ✅ Tabs (only visible for SPED Admin) -->
+    <div class="card" id="spedTabs" style="display:none; margin-bottom:14px;">
+      <div class="row" style="gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-blue" id="tabAdmin">Manage Behaviors</button>
+        <button class="btn btn-gray" id="tabDash">Dashboard</button>
+
+        <div style="flex:1;"></div>
+
+        <button class="btn btn-green" id="exportCsvBtn">Export Logs (CSV)</button>
+      </div>
+    </div>
+
+    <!-- ✅ ADMIN VIEW -->
+    <section class="card" id="adminView" style="display:none;">
+      <h2>Manage Behavior Buttons</h2>
+      <p class="muted" style="margin-top:-8px;">These buttons show up on the teacher page.</p>
+
+      <div class="row" style="flex-wrap:wrap; gap:10px; margin-top:12px;">
+        <input id="newBehaviorName" class="input" type="text" placeholder="Behavior name (ex: Hitting)" />
+        <select id="newBehaviorCategory" class="input" style="min-width:220px;">
+          <option value="Physical Aggression">Physical Aggression</option>
+          <option value="Verbal Aggression">Verbal Aggression</option>
+          <option value="Noncompliance">Noncompliance</option>
+          <option value="Disruption">Disruption</option>
+          <option value="Elopement">Elopement</option>
+          <option value="Property Destruction">Property Destruction</option>
+          <option value="Other">Other</option>
+        </select>
+        <button id="addBehaviorBtn" class="btn btn-green">Add</button>
+      </div>
+
+      <div style="height:14px;"></div>
+
+      <div id="behaviorAdminList"></div>
+    </section>
+
+    <!-- ✅ DASHBOARD VIEW -->
+    <section class="card" id="dashView" style="display:none;">
+      <h2>Filters</h2>
+
+      <div class="row" style="flex-wrap:wrap; gap:10px;">
+        <div>
+          <div class="muted" style="margin-bottom:6px;">Start</div>
+          <input id="startDate" class="input" type="date" />
         </div>
 
-        <div id="behaviorAdminList" class="admin-list"></div>
-      </section>
+        <div>
+          <div class="muted" style="margin-bottom:6px;">End</div>
+          <input id="endDate" class="input" type="date" />
+        </div>
 
-      <section class="card" id="noAccessPanel" style="display:none;">
-        <h2>No Access</h2>
-        <p class="muted">Your email isn’t on the SPED admin list for this tool.</p>
-      </section>
-    </main>
+        <div style="min-width:220px;">
+          <div class="muted" style="margin-bottom:6px;">Student</div>
+          <select id="studentFilter" class="input">
+            <option value="">All students</option>
+          </select>
+        </div>
+
+        <div style="min-width:220px;">
+          <div class="muted" style="margin-bottom:6px;">Category</div>
+          <select id="categoryFilter" class="input">
+            <option value="">All categories</option>
+          </select>
+        </div>
+
+        <div style="min-width:260px;">
+          <div class="muted" style="margin-bottom:6px;">Teacher</div>
+          <select id="teacherFilter" class="input">
+            <option value="">All teachers</option>
+          </select>
+        </div>
+
+        <div class="row" style="align-items:flex-end;">
+          <button id="applyBtn" class="btn btn-green">Apply</button>
+          <button id="resetBtn" class="btn btn-gray">Reset</button>
+        </div>
+      </div>
+
+      <div style="height:14px;"></div>
+
+      <h2>Quick Stats</h2>
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <div style="height:18px;"></div>
+
+      <h2>Trends</h2>
+      <div style="height:320px;">
+        <canvas id="trendChart"></canvas>
+      </div>
+
+      <div style="height:18px;"></div>
+
+      <h2>Top Behaviors</h2>
+      <div style="height:340px;">
+        <canvas id="topBehaviorsChart"></canvas>
+      </div>
+
+      <div style="height:18px;"></div>
+
+      <h2>Time-of-Day Heatmap</h2>
+      <p class="muted" style="margin-top:-8px;">Darker = more incidents. Great for spotting transition patterns.</p>
+      <div id="heatmap" class="heatmap"></div>
+    </section>
   </div>
 
+  <!-- ✅ Single JS controller for Admin + Dashboard -->
   <script type="module" src="js/sped.js"></script>
 </body>
 </html>
-
