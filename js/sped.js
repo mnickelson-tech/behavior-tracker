@@ -171,12 +171,8 @@ wireAuthUI({
       els.noAccessPanel.style.display = "block";
       if (unsubscribeBehaviors) unsubscribeBehaviors();
     }
-    els.exportCsvBtn.addEventListener("click", async () => {
-  if (!user) return;
-  if (!isAdminEmail(user.email)) return;
-  await exportLogsToCsv();
-});
   },
+
   onSignedOut: () => {
     user = null;
     behaviors = [];
@@ -184,6 +180,11 @@ wireAuthUI({
     els.adminPanel.style.display = "none";
     els.noAccessPanel.style.display = "none";
   }
+});
+els.exportCsvBtn.addEventListener("click", async () => {
+  if (!user) return;
+  if (!isAdminEmail(user.email)) return;
+  await exportLogsToCsv();
 });
 
 
