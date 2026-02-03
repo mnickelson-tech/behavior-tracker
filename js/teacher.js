@@ -6,6 +6,8 @@ import { wireAuthUI } from "./auth-ui.js";
 const BEHAVIORS_COL = "behaviors";
 const LOGS_COL = "logs";
 const STUDENTS_DOC = "app/students"; // simple shared doc for student list (optional)
+const GRADE_OPTIONS = ["PK","K","1","2","3","4","5","6"];
+let selectedGrade = "K"; // default (change if you want)
 
 let user = null;
 let students = [];
@@ -276,6 +278,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
