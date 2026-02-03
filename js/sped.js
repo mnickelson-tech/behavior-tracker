@@ -80,7 +80,7 @@ function startBehaviorsListener() {
 
 async function exportLogsToCsv() {
   // Pull all logs ordered by createdAt (oldest -> newest)
-  const q = fb.query(fb.collection(db, "logs"), fb.orderBy("createdAt", "asc"));
+ const q = fb.query(fb.collection(db, BEHAVIORS_COL)); // no orderBy
   const snap = await fb.getDocs(q);
 
   const headers = [
@@ -186,5 +186,6 @@ els.exportCsvBtn.addEventListener("click", async () => {
   if (!isAdminEmail(user.email)) return;
   await exportLogsToCsv();
 });
+
 
 
