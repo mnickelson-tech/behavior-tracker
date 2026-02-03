@@ -200,11 +200,28 @@ async function loadStudents() {
 function startBehaviorListener() {
   if (unsubscribeBehaviors) unsubscribeBehaviors();
 
-  const q = fb.query(fb.collection(db, BEHAVIORS_COL), fb.orderBy("category"), fb.orderBy("name"));
-  unsubscribeBehaviors = fb.onSnapshot(q, (snap) => {
-    behaviors = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(b => b.active !== false);
-    renderBehaviors();
-  });
+  const q = fb.query(fb.collection(db, BEHAVIORS_COL)); // no orderBy
+  unsubscribeBehaviors = fb.onSnapshot(
+    q,
+    (snap) => {
+      behaviors = snap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(b => b.active !== false);
+
+      // sort locally
+      behaviors.sort((a, b) => {
+        const ac = (a.category || "Other");
+        const bc = (b.category || "Other");
+        if (ac === bc) return (a.name || "").localeCompare(b.name || "");
+        return ac.localeCompare(bc);
+      });
+
+      renderBehaviors();
+    },
+    (err) => {
+      console.error("Behavior listener error:", err);
+    }
+  );
 }
 
 function startTodayLogsListener() {
@@ -259,5 +276,6 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
