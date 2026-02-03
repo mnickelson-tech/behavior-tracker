@@ -79,57 +79,55 @@ function startBehaviorsListener() {
 }
 
 async function exportLogsToCsv() {
-  // Pull all logs ordered by createdAt (oldest -> newest)
- const q = fb.query(fb.collection(db, BEHAVIORS_COL)); // no orderBy
+  const q = fb.query(fb.collection(db, "logs")); // keep simple
   const snap = await fb.getDocs(q);
 
-  const headers = [
-    "date",
-    "time",
-    "studentInitials",
-    "behavior",
-    "category",
-    "teacherEmail"
-  ];
+  const headers = ["date", "time", "studentInitials", "behavior", "category", "teacherEmail"];
+  const rows = [headers.join(",")];
 
   const esc = (v) => {
     const s = String(v ?? "");
-    return `"${s.replaceAll('"', '""')}"`;
+    return `"${s.replace(/"/g, '""')}"`;
   };
 
-  const rows = [headers.join(",")];
-
   snap.forEach(docSnap => {
-    const l = docSnap.data();
+    const l = docSnap.data() || {};
 
-    // Firestore Timestamp -> JS Date
-    const dt = l.createdAt?.toDate ? l.createdAt.toDate() : null;
+    // createdAt: Firestore Timestamp -> Date
+    const dt = (l.createdAt && typeof l.createdAt.toDate === "function") ? l.createdAt.toDate() : null;
 
-    const date = dt ? dt.toLocaleDateString() : (l.dayKey || "");
-    const time = dt ? dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+    const date = dt ? dt.toLocaleDateString("en-US") : (l.dayKey || "");
+    const time = dt ? dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+
+    // IMPORTANT: always output all columns, even if blank
+    const student = l.studentName || "";
+    const behavior = l.behaviorName || l.behavior_type || "";
+    const category = l.category || l.behaviorCategory || "";
+    const teacherEmail = l.teacherEmail || "";
 
     rows.push([
       esc(date),
       esc(time),
-      esc(l.studentName || ""),        // already initials from teacher side
-      esc(l.behaviorName || ""),
-      esc(l.category || ""),
-      esc(l.teacherEmail || "")
+      esc(student),
+      esc(behavior),
+      esc(category),
+      esc(teacherEmail)
     ].join(","));
   });
 
   const csv = rows.join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = "behavior_logs.csv";
+  a.download = `behavior_logs_${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
 }
+
 
 els.addBehaviorBtn.addEventListener("click", async () => {
   if (!user) return;
@@ -186,6 +184,7 @@ els.exportCsvBtn.addEventListener("click", async () => {
   if (!isAdminEmail(user.email)) return;
   await exportLogsToCsv();
 });
+
 
 
 
