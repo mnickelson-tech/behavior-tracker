@@ -4,9 +4,9 @@ import { wireAuthUI } from "./auth-ui.js";
 
 // PUT YOUR SPED ADMIN EMAILS HERE
 const SPED_ADMIN_EMAILS = [
-"ektodd@conroeisd.net"
-  "mhenthorn@conroeisd.net"
-  "dpreuss@conroeisd.net"
+  "ektodd@conroeisd.net",
+  "mhenthorn@conroeisd.net",
+  "dpreuss@conroeisd.net",
   "mnickelson@conroeisd.net"
 ].map(e => e.toLowerCase());
 
@@ -126,3 +126,4 @@ wireAuthUI({
     els.noAccessPanel.style.display = "none";
   }
 });
+
