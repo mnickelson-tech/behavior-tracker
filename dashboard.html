@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Behavior Tracker — SPED Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Behavior Tracker — SPED Dashboard</h1>
+      <p class="sub">Patterns, trends, and quick exports.</p>
+    </header>
+
+    <!-- Login bar -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <strong id="userLabel">Not signed in</strong><br />
+          <span class="muted" id="userRoleLabel">Role: —</span>
+        </div>
+        <div class="row">
+          <button class="btn btn-blue" id="loginBtn">Sign in</button>
+          <button class="btn btn-gray" id="logoutBtn" style="display:none;">Sign out</button>
+        </div>
+      </div>
+    </div>
+
+    <main class="main">
+      <!-- Access control -->
+      <section class="card" id="noAccessPanel" style="display:none;">
+        <h2>No Access</h2>
+        <p class="muted">Your email isn’t on the SPED admin list for this dashboard.</p>
+      </section>
+
+      <section class="card" id="dashboardPanel" style="display:none;">
+        <h2>Filters</h2>
+        <div class="row" style="flex-wrap:wrap; gap:10px;">
+          <div>
+            <div class="muted" style="margin-bottom:6px;">Start</div>
+            <input id="startDate" class="input" type="date" />
+          </div>
+
+          <div>
+            <div class="muted" style="margin-bottom:6px;">End</div>
+            <input id="endDate" class="input" type="date" />
+          </div>
+
+          <div style="min-width:220px;">
+            <div class="muted" style="margin-bottom:6px;">Student</div>
+            <select id="studentFilter" class="input">
+              <option value="">All students</option>
+            </select>
+          </div>
+
+          <div style="min-width:220px;">
+            <div class="muted" style="margin-bottom:6px;">Category</div>
+            <select id="categoryFilter" class="input">
+              <option value="">All categories</option>
+            </select>
+          </div>
+
+          <div style="min-width:260px;">
+            <div class="muted" style="margin-bottom:6px;">Teacher</div>
+            <select id="teacherFilter" class="input">
+              <option value="">All teachers</option>
+            </select>
+          </div>
+
+          <div class="row" style="align-items:flex-end;">
+            <button id="applyBtn" class="btn btn-green">Apply</button>
+            <button id="resetBtn" class="btn btn-gray">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- KPIs -->
+      <section class="card" id="kpiPanel" style="display:none;">
+        <h2>Quick Stats</h2>
+        <div class="kpi-grid" id="kpiGrid"></div>
+      </section>
+
+      <!-- Charts -->
+      <section class="card" id="chartsPanel" style="display:none;">
+        <h2>Trends</h2>
+        <div style="height:320px;">
+          <canvas id="trendChart"></canvas>
+        </div>
+
+        <div style="height:18px;"></div>
+
+        <h2>Top Behaviors</h2>
+        <div style="height:340px;">
+          <canvas id="topBehaviorsChart"></canvas>
+        </div>
+
+        <div style="height:18px;"></div>
+
+        <h2>Time-of-Day Heatmap</h2>
+        <p class="muted" style="margin-top:-8px;">Darker = more incidents. Great for spotting transition patterns.</p>
+        <div id="heatmap" class="heatmap"></div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
