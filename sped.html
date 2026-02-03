@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Behavior Tracker — SPED Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Behavior Tracker — SPED Admin</h1>
+      <p class="sub">Manage the behavior buttons teachers see.</p>
+    </header>
+
+    <main class="main">
+      <section class="card">
+        <h2>Behavior Buttons (Teacher Side)</h2>
+
+        <div class="row">
+          <input id="newBehaviorName" class="input" type="text" placeholder="Add behavior (e.g., Elopement)" />
+          <select id="newBehaviorCategory" class="input">
+            <option value="Physical Aggression">Physical Aggression</option>
+            <option value="Verbal Aggression">Verbal Aggression</option>
+            <option value="Disruption">Disruption</option>
+            <option value="Noncompliance">Noncompliance</option>
+            <option value="Other">Other</option>
+          </select>
+          <button id="addBehaviorBtn" class="btn btn-green">Add</button>
+        </div>
+
+        <div id="behaviorAdminList" class="admin-list"></div>
+
+        <div class="row" style="margin-top:12px;">
+          <button id="restoreDefaultsBtn" class="btn btn-gray">Restore Defaults</button>
+          <button id="exportCsvBtn" class="btn btn-blue">Export Logs (CSV)</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Quick Notes</h2>
+        <ul class="bullets">
+          <li>Changes here update the Teacher page instantly (same browser/device).</li>
+          <li>If you want this shared across devices, we’ll plug in Firebase or your dataSdk.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="store.js"></script>
+  <script src="sped.js"></script>
+</body>
+</html>

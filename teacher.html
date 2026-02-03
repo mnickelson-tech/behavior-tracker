@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Behavior Tracker — Teacher</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Behavior Tracker — Teacher</h1>
+      <p class="sub">Tap a behavior to log a timestamp.</p>
+    </header>
+
+    <main class="main">
+      <section class="card">
+        <h2>Select Student</h2>
+
+        <div id="studentButtons" class="student-buttons"></div>
+
+        <div class="row">
+          <input id="studentInput" class="input" type="text" placeholder="Add new student..." />
+          <button id="addStudentBtn" class="btn btn-green">Add</button>
+        </div>
+
+        <div id="currentStudentBox" class="current-student" style="display:none;">
+          Tracking: <span id="currentStudentName"></span>
+        </div>
+
+        <div id="noStudentWarning" class="warning" style="display:none;">
+          Please select a student to begin.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Track Behaviors</h2>
+          <div class="row">
+            <button id="clearTodayBtn" class="btn btn-gray">Clear Today (local)</button>
+          </div>
+        </div>
+
+        <div id="behaviorGrid" class="behavior-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Today’s Log</h2>
+        <div id="todayLog" class="log-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="store.js"></script>
+  <script src="teacher.js"></script>
+</body>
+</html>

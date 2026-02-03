@@ -1,0 +1,176 @@
+:root{
+  --bg1:#667eea;
+  --bg2:#764ba2;
+  --card:#ffffff;
+  --text:#2d3748;
+  --muted:#718096;
+  --primary:#667eea;
+  --danger:#f56565;
+  --green:#48bb78;
+  --gray:#e2e8f0;
+}
+
+*{ box-sizing:border-box; }
+html, body{ height:100%; margin:0; font-family: system-ui, -apple-system, Segoe UI, Arial, sans-serif; color:var(--text); }
+body{
+  background: linear-gradient(135deg, var(--bg1), var(--bg2));
+}
+
+.container{ max-width: 1100px; margin: 0 auto; padding: 16px; }
+.header{ color:#fff; text-align:center; margin-bottom: 14px; }
+.header h1{ margin:0; font-size: 28px; }
+.sub{ margin: 6px 0 0; color: rgba(255,255,255,0.85); }
+
+.main{ display:flex; flex-direction:column; gap: 14px; }
+
+.card{
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+}
+
+.card-header{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+h2{ margin:0 0 10px; color: var(--primary); font-size: 18px; }
+
+.row{ display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
+
+.input{
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--gray);
+  outline: none;
+  min-width: 220px;
+}
+.input:focus{ border-color: var(--primary); }
+
+.btn{
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn-blue{ background: var(--primary); color:#fff; }
+.btn-green{ background: var(--green); color:#fff; }
+.btn-gray{ background: var(--gray); color: var(--text); }
+.btn-danger{ background: var(--danger); color:#fff; }
+
+.student-buttons{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.student-btn{
+  padding: 10px;
+  background:#f7fafc;
+  border: 2px solid var(--gray);
+  border-radius: 10px;
+  cursor:pointer;
+  font-weight: 700;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap:8px;
+}
+.student-btn.active{
+  background: var(--primary);
+  color:#fff;
+  border-color: var(--primary);
+}
+.small-x{
+  background: rgba(0,0,0,0.08);
+  border:none;
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor:pointer;
+  font-weight: 900;
+}
+.student-btn.active .small-x{ background: rgba(255,255,255,0.25); color:#fff; }
+
+.current-student{
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #ebf4ff;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.warning{
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #fef5e7;
+  border-radius: 12px;
+  color: #a16207;
+  font-weight: 700;
+}
+
+.behavior-grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.behavior-btn{
+  padding: 14px;
+  border-radius: 12px;
+  border: 2px solid var(--gray);
+  background: #f7fafc;
+  cursor: pointer;
+  font-weight: 800;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 10px;
+}
+.behavior-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+.pill{
+  background: var(--primary);
+  color:#fff;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-weight: 900;
+  min-width: 38px;
+  text-align:center;
+}
+
+.log-list{ display:flex; flex-direction:column; gap: 8px; }
+.log-item{
+  background:#f7fafc;
+  border:1px solid var(--gray);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 14px;
+}
+.muted{ color: var(--muted); font-weight: 700; }
+
+.admin-list{ display:flex; flex-direction:column; gap: 8px; margin-top: 10px; }
+.admin-row{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background:#f7fafc;
+  border:1px solid var(--gray);
+}
+.badge{ font-size: 12px; font-weight: 900; padding: 4px 8px; border-radius: 999px; background:#e6eeff; color:#334155; }
+
+.bullets{ margin: 0; padding-left: 18px; color: var(--muted); font-weight: 600; }
+
+@media (max-width: 768px){
+  .student-buttons{ grid-template-columns: 1fr; }
+  .behavior-grid{ grid-template-columns: 1fr; }
+  .input{ min-width: 0; width: 100%; }
+}
