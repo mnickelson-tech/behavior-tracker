@@ -13,6 +13,20 @@
       <p class="sub">Tap a behavior to log a timestamp.</p>
     </header>
 
+    <!-- 🔐 Login bar -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <strong id="userLabel">Not signed in</strong><br />
+          <span class="muted" id="userRoleLabel">Role: —</span>
+        </div>
+        <div class="row">
+          <button class="btn btn-blue" id="loginBtn">Sign in</button>
+          <button class="btn btn-gray" id="logoutBtn" style="display:none;">Sign out</button>
+        </div>
+      </div>
+    </div>
+
     <main class="main">
       <section class="card">
         <h2>Select Student</h2>
@@ -20,7 +34,12 @@
         <div id="studentButtons" class="student-buttons"></div>
 
         <div class="row">
-          <input id="studentInput" class="input" type="text" placeholder="Add new student..." />
+          <input
+            id="studentInput"
+            class="input"
+            type="text"
+            placeholder="Add student (initials or name)…"
+          />
           <button id="addStudentBtn" class="btn btn-green">Add</button>
         </div>
 
@@ -34,13 +53,7 @@
       </section>
 
       <section class="card">
-        <div class="card-header">
-          <h2>Track Behaviors</h2>
-          <div class="row">
-            <button id="clearTodayBtn" class="btn btn-gray">Clear Today (local)</button>
-          </div>
-        </div>
-
+        <h2>Track Behaviors</h2>
         <div id="behaviorGrid" class="behavior-grid"></div>
       </section>
 
@@ -51,7 +64,7 @@
     </main>
   </div>
 
-  <script src="store.js"></script>
-  <script src="teacher.js"></script>
+  <!-- ✅ Firebase / module-based teacher logic -->
+  <script type="module" src="js/teacher.js"></script>
 </body>
 </html>
