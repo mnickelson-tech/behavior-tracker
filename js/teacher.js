@@ -24,6 +24,38 @@ const els = {
   behaviorGrid: document.getElementById("behaviorGrid"),
   todayLog: document.getElementById("todayLog"),
 };
+function normalizeStudentInitials(input) {
+  const raw = (input || "").trim();
+  if (!raw) return "";
+
+  // If teacher already typed initials like "A.S." keep letters only and reformat
+  const parts = raw
+    .replace(/[^a-zA-Z\s]/g, " ")   // remove punctuation into spaces
+    .split(/\s+/)
+    .filter(Boolean);
+
+  // If they typed something like "AS" with no space, treat as initials
+  if (parts.length === 1 && parts[0].length > 1) {
+    const letters = parts[0].replace(/[^a-zA-Z]/g, "");
+    if (letters.length >= 2 && letters.length <= 4) {
+      return letters
+        .toUpperCase()
+        .split("")
+        .map(ch => `${ch}.`)
+        .join("");
+    }
+  }
+
+  // Otherwise: take first letter of each word, max 3
+  const initials = parts
+    .slice(0, 3)
+    .map(p => p[0].toUpperCase())
+    .map(ch => `${ch}.`)
+    .join("");
+
+  return initials;
+}
+
 
 function todayKey() {
   const d = new Date();
@@ -227,3 +259,4 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
