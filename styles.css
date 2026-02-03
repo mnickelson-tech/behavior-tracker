@@ -174,3 +174,52 @@ h2{ margin:0 0 10px; color: var(--primary); font-size: 18px; }
   .behavior-grid{ grid-template-columns: 1fr; }
   .input{ min-width: 0; width: 100%; }
 }
+
+.kpi-grid{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap:12px;
+}
+.kpi-card{
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 14px;
+  padding: 14px;
+}
+.kpi-value{
+  font-size: 22px;
+  font-weight: 900;
+  margin-top: 6px;
+}
+
+.heatmap{
+  overflow:auto;
+  padding: 6px;
+}
+.heatmap-grid{
+  display:grid;
+  grid-template-columns: 56px repeat(24, 32px);
+  gap:6px;
+  align-items:stretch;
+}
+.heatmap-cell{
+  border-radius: 10px;
+  padding: 6px;
+  font-size: 12px;
+  text-align:center;
+  line-height: 1;
+}
+.heatmap-cell.head{
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.9);
+  font-weight: 800;
+}
+.heatmap-cell.box{
+  background: rgba(255,255,255,0.92);
+  color: rgba(0,0,0,0.75);
+  font-weight: 800;
+}
+@media (max-width: 900px){
+  .kpi-grid{ grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+}
+
