@@ -2,12 +2,12 @@
 import { db, fb } from "./firebase-init.js";
 import { wireAuthUI } from "./auth-ui.js";
 
-// ✅ PUT YOUR SPED ADMIN EMAILS HERE
+// PUT YOUR SPED ADMIN EMAILS HERE
 const SPED_ADMIN_EMAILS = [
-  ektodd@conroeisd.net
-  mhenthorn@conroeisd.net
-  dpreuss@conroeisd.net
-  mnickelson@conroeisd.net
+"ektodd@conroeisd.net"
+  "mhenthorn@conroeisd.net"
+  "dpreuss@conroeisd.net"
+  "mnickelson@conroeisd.net"
 ].map(e => e.toLowerCase());
 
 const BEHAVIORS_COL = "behaviors";
@@ -35,9 +35,11 @@ function renderAdminList() {
     return;
   }
 
-  const sorted = behaviors.slice().sort((a,b) => {
-    if ((a.category||"") === (b.category||"")) return (a.name||"").localeCompare(b.name||"");
-    return (a.category||"").localeCompare(b.category||"");
+  const sorted = behaviors.slice().sort((a, b) => {
+    const ac = (a.category || "");
+    const bc = (b.category || "");
+    if (ac === bc) return (a.name || "").localeCompare(b.name || "");
+    return ac.localeCompare(bc);
   });
 
   els.behaviorAdminList.innerHTML = sorted.map(b => `
@@ -61,9 +63,16 @@ function renderAdminList() {
 function startBehaviorsListener() {
   if (unsubscribeBehaviors) unsubscribeBehaviors();
 
-  const q = fb.query(fb.collection(db, BEHAVIORS_COL), fb.orderBy("category"), fb.orderBy("name"));
+  const q = fb.query(
+    fb.collection(db, BEHAVIORS_COL),
+    fb.orderBy("category"),
+    fb.orderBy("name")
+  );
+
   unsubscribeBehaviors = fb.onSnapshot(q, (snap) => {
-    behaviors = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(b => b.active !== false);
+    behaviors = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(b => b.active !== false);
     renderAdminList();
   });
 }
@@ -73,10 +82,9 @@ els.addBehaviorBtn.addEventListener("click", async () => {
   if (!isAdminEmail(user.email)) return;
 
   const name = els.newBehaviorName.value.trim();
-  const category = els.newBehaviorCategory.value.trim() || "Other";
+  const category = (els.newBehaviorCategory.value || "Other").trim();
   if (!name) return;
 
-  // prevent duplicates by name (case-insensitive)
   const exists = behaviors.some(b => (b.name || "").toLowerCase() === name.toLowerCase());
   if (exists) return;
 
@@ -99,6 +107,7 @@ wireAuthUI({
   isAdminEmail,
   onSignedIn: (u, role) => {
     user = u;
+
     if (role === "SPED Admin") {
       els.adminPanel.style.display = "block";
       els.noAccessPanel.style.display = "none";
