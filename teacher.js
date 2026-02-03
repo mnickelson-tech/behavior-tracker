@@ -1,195 +1,229 @@
-(() => {
-  let students = Store.getStudents();
-  let behaviors = Store.getBehaviors();
-  let currentStudent = null;
+// js/teacher.js
+import { db, fb } from "./firebase-init.js";
+import { wireAuthUI } from "./auth-ui.js";
 
-  const els = {
-    studentButtons: document.getElementById("studentButtons"),
-    studentInput: document.getElementById("studentInput"),
-    addStudentBtn: document.getElementById("addStudentBtn"),
-    currentStudentBox: document.getElementById("currentStudentBox"),
-    currentStudentName: document.getElementById("currentStudentName"),
-    noStudentWarning: document.getElementById("noStudentWarning"),
-    behaviorGrid: document.getElementById("behaviorGrid"),
-    todayLog: document.getElementById("todayLog"),
-    clearTodayBtn: document.getElementById("clearTodayBtn"),
-  };
+// Collection paths
+const BEHAVIORS_COL = "behaviors";
+const LOGS_COL = "logs";
+const STUDENTS_DOC = "app/students"; // simple shared doc for student list (optional)
 
-  function fmtTime(d) {
-    return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
+let user = null;
+let students = [];
+let behaviors = [];
+let currentStudent = null;
+let unsubscribeBehaviors = null;
+let unsubscribeTodayLogs = null;
+
+const els = {
+  studentButtons: document.getElementById("studentButtons"),
+  studentInput: document.getElementById("studentInput"),
+  addStudentBtn: document.getElementById("addStudentBtn"),
+  currentStudentBox: document.getElementById("currentStudentBox"),
+  currentStudentName: document.getElementById("currentStudentName"),
+  noStudentWarning: document.getElementById("noStudentWarning"),
+  behaviorGrid: document.getElementById("behaviorGrid"),
+  todayLog: document.getElementById("todayLog"),
+};
+
+function todayKey() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function updateStudentState() {
+  if (currentStudent) {
+    els.currentStudentBox.style.display = "block";
+    els.noStudentWarning.style.display = "none";
+    els.currentStudentName.textContent = currentStudent;
+  } else {
+    els.currentStudentBox.style.display = "none";
+    els.noStudentWarning.style.display = "block";
   }
 
-  function computeCountsForToday() {
-    const logs = Store.getTodayLogs();
-    const counts = {};
-    for (const b of behaviors) counts[b.name] = 0;
-    for (const l of logs) {
-      counts[l.behaviorName] = (counts[l.behaviorName] || 0) + 1;
-    }
-    return counts;
-  }
+  els.behaviorGrid.querySelectorAll(".behavior-btn").forEach(btn => {
+    btn.disabled = !currentStudent;
+  });
+}
 
-  function renderStudents() {
-    els.studentButtons.innerHTML = students.map(name => `
-      <button class="student-btn ${currentStudent === name ? "active" : ""}" data-student="${encodeURIComponent(name)}">
-        <span>${name}</span>
-        <button class="small-x" data-del="${encodeURIComponent(name)}">✕</button>
-      </button>
-    `).join("");
+function renderStudents() {
+  els.studentButtons.innerHTML = students.map(name => `
+    <button class="student-btn ${currentStudent === name ? "active" : ""}" data-student="${encodeURIComponent(name)}">
+      <span>${name}</span>
+      <button class="small-x" data-del="${encodeURIComponent(name)}">✕</button>
+    </button>
+  `).join("");
 
-    els.studentButtons.querySelectorAll(".student-btn").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        const del = e.target?.dataset?.del;
-        if (del) return; // delete handled below
-        const s = decodeURIComponent(btn.dataset.student);
-        currentStudent = s;
-        renderStudents();
-        renderBehaviors();
-        renderTodayLog();
-        updateStudentState();
-      });
+  els.studentButtons.querySelectorAll(".student-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const del = e.target?.dataset?.del;
+      if (del) return;
+      const s = decodeURIComponent(btn.dataset.student);
+      currentStudent = s;
+      renderStudents();
+      updateStudentState();
     });
+  });
 
-    els.studentButtons.querySelectorAll(".small-x").forEach(x => {
-      x.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const s = decodeURIComponent(x.dataset.del);
-        students = students.filter(n => n !== s);
-        Store.setStudents(students);
-        if (currentStudent === s) currentStudent = null;
-        renderStudents();
-        renderBehaviors();
-        renderTodayLog();
-        updateStudentState();
-      });
+  els.studentButtons.querySelectorAll(".small-x").forEach(x => {
+    x.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const s = decodeURIComponent(x.dataset.del);
+      students = students.filter(n => n !== s);
+      if (currentStudent === s) currentStudent = null;
+      await fb.setDoc(fb.doc(db, STUDENTS_DOC), { students }, { merge: true });
+      renderStudents();
+      updateStudentState();
     });
+  });
+}
+
+function renderBehaviors() {
+  // group by category
+  const byCat = {};
+  for (const b of behaviors) {
+    const cat = b.category || "Other";
+    if (!byCat[cat]) byCat[cat] = [];
+    byCat[cat].push(b);
   }
 
-  function updateStudentState() {
-    if (currentStudent) {
-      els.currentStudentBox.style.display = "block";
-      els.noStudentWarning.style.display = "none";
-      els.currentStudentName.textContent = currentStudent;
-    } else {
-      els.currentStudentBox.style.display = "none";
-      els.noStudentWarning.style.display = "block";
-    }
-    // enable/disable behavior buttons
-    els.behaviorGrid.querySelectorAll(".behavior-btn").forEach(btn => {
-      btn.disabled = !currentStudent;
-    });
-  }
-
-  function renderBehaviors() {
-    // refresh behaviors in case SPED page changed them
-    behaviors = Store.getBehaviors();
-
-    const counts = computeCountsForToday();
-
-    // group by category for nicer display
-    const byCat = {};
-    for (const b of behaviors) {
-      if (!byCat[b.category]) byCat[b.category] = [];
-      byCat[b.category].push(b);
-    }
-
-    const sections = Object.keys(byCat).sort().map(cat => {
-      const items = byCat[cat].map(b => `
-        <button class="behavior-btn" data-beh="${b.id}" ${!currentStudent ? "disabled" : ""}>
+  const sections = Object.keys(byCat).sort().map(cat => {
+    const items = byCat[cat]
+      .sort((a,b) => (a.name || "").localeCompare(b.name || ""))
+      .map(b => `
+        <button class="behavior-btn" data-id="${b.id}" ${!currentStudent ? "disabled" : ""}>
           <span>${b.name}</span>
-          <span class="pill">${counts[b.name] || 0}</span>
         </button>
       `).join("");
 
-      return `
-        <div style="margin-bottom:12px;">
-          <div class="muted" style="margin: 0 0 8px;">${cat}</div>
-          <div class="behavior-grid">${items}</div>
-        </div>
-      `;
-    }).join("");
+    return `
+      <div style="margin-bottom:12px;">
+        <div class="muted" style="margin: 0 0 8px;">${cat}</div>
+        <div class="behavior-grid">${items}</div>
+      </div>
+    `;
+  }).join("");
 
-    // NOTE: we reuse .behavior-grid inside sections, so behaviorGrid is a wrapper
-    els.behaviorGrid.innerHTML = sections;
+  els.behaviorGrid.innerHTML = sections;
 
-    // click handlers
-    els.behaviorGrid.querySelectorAll(".behavior-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        if (!currentStudent) return;
+  els.behaviorGrid.querySelectorAll(".behavior-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!user || !currentStudent) return;
+      const behavior = behaviors.find(b => b.id === btn.dataset.id);
+      if (!behavior) return;
 
-        const behaviorId = btn.dataset.beh;
-        const behavior = behaviors.find(b => b.id === behaviorId);
-        if (!behavior) return;
-
-        const now = new Date();
-        const entry = {
-          id: crypto.randomUUID(),
-          dayKey: Store.getTodayKey(),
-          studentName: currentStudent,
-          behaviorId: behavior.id,
-          behaviorName: behavior.name,
-          category: behavior.category,
-          timestampISO: now.toISOString(),
-          timeLabel: fmtTime(now)
-        };
-
-        Store.addLog(entry);
-        renderBehaviors();
-        renderTodayLog();
+      await fb.addDoc(fb.collection(db, LOGS_COL), {
+        dayKey: todayKey(),
+        studentName: currentStudent, // consider initials/ID for privacy
+        behaviorId: behavior.id,
+        behaviorName: behavior.name,
+        category: behavior.category || "Other",
+        teacherUid: user.uid,
+        teacherEmail: user.email || "",
+        createdAt: fb.serverTimestamp()
       });
     });
+  });
 
-    updateStudentState();
+  updateStudentState();
+}
+
+function renderTodayLogs(logDocs) {
+  if (!logDocs.length) {
+    els.todayLog.innerHTML = `<div class="log-item muted">No logs yet today.</div>`;
+    return;
   }
 
-  function renderTodayLog() {
-    const logs = Store.getTodayLogs()
-      .slice()
-      .sort((a,b) => (a.timestampISO < b.timestampISO ? 1 : -1)); // newest first
-
-    if (logs.length === 0) {
-      els.todayLog.innerHTML = `<div class="log-item muted">No logs yet today.</div>`;
-      return;
-    }
-
-    els.todayLog.innerHTML = logs.map(l => `
+  els.todayLog.innerHTML = logDocs.map(d => {
+    const l = d.data();
+    // createdAt is a Firestore Timestamp; may be null immediately until server resolves
+    const time = l.createdAt?.toDate ? l.createdAt.toDate().toLocaleTimeString("en-US", {
+      hour: "2-digit", minute: "2-digit", second: "2-digit"
+    }) : "…";
+    return `
       <div class="log-item">
         <div><strong>${l.studentName}</strong> — ${l.behaviorName}</div>
-        <div class="muted">${l.timeLabel}</div>
+        <div class="muted">${time}</div>
       </div>
-    `).join("");
+    `;
+  }).join("");
+}
+
+async function loadStudents() {
+  const snap = await fb.getDocs(fb.query(fb.collection(db, "app"))); // noop, just ensure db
+  // We'll store students in a single doc: app/students
+  const docRef = fb.doc(db, STUDENTS_DOC);
+  const docSnap = await (await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js")).getDoc(docRef);
+  if (docSnap.exists()) {
+    students = docSnap.data().students || [];
+  } else {
+    students = [];
   }
-
-  // Add student
-  els.addStudentBtn.addEventListener("click", () => {
-    const name = els.studentInput.value.trim();
-    if (!name) return;
-    if (!students.includes(name)) {
-      students.push(name);
-      Store.setStudents(students);
-    }
-    currentStudent = name;
-    els.studentInput.value = "";
-    renderStudents();
-    renderBehaviors();
-    renderTodayLog();
-    updateStudentState();
-  });
-
-  els.studentInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") els.addStudentBtn.click();
-  });
-
-  // Clear today logs
-  els.clearTodayBtn.addEventListener("click", () => {
-    Store.clearTodayLogs();
-    renderBehaviors();
-    renderTodayLog();
-  });
-
-  // initial render
   renderStudents();
-  renderBehaviors();
-  renderTodayLog();
   updateStudentState();
-})();
+}
+
+function startBehaviorListener() {
+  if (unsubscribeBehaviors) unsubscribeBehaviors();
+
+  const q = fb.query(fb.collection(db, BEHAVIORS_COL), fb.orderBy("category"), fb.orderBy("name"));
+  unsubscribeBehaviors = fb.onSnapshot(q, (snap) => {
+    behaviors = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(b => b.active !== false);
+    renderBehaviors();
+  });
+}
+
+function startTodayLogsListener() {
+  if (unsubscribeTodayLogs) unsubscribeTodayLogs();
+
+  const q = fb.query(
+    fb.collection(db, LOGS_COL),
+    fb.orderBy("createdAt", "desc")
+  );
+
+  unsubscribeTodayLogs = fb.onSnapshot(q, (snap) => {
+    const docs = snap.docs.filter(d => d.data()?.dayKey === todayKey());
+    renderTodayLogs(docs.slice(0, 50));
+  });
+}
+
+// Add student
+els.addStudentBtn.addEventListener("click", async () => {
+  if (!user) return;
+  const name = els.studentInput.value.trim();
+  if (!name) return;
+  if (!students.includes(name)) students.push(name);
+  currentStudent = name;
+  els.studentInput.value = "";
+  await fb.setDoc(fb.doc(db, STUDENTS_DOC), { students }, { merge: true });
+  renderStudents();
+  updateStudentState();
+});
+els.studentInput.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") els.addStudentBtn.click();
+});
+
+// Auth wiring (teachers do not need admin)
+wireAuthUI({
+  isAdminEmail: () => false,
+  onSignedIn: async (u) => {
+    user = u;
+    await loadStudents();
+    startBehaviorListener();
+    startTodayLogsListener();
+  },
+  onSignedOut: () => {
+    user = null;
+    students = [];
+    behaviors = [];
+    currentStudent = null;
+    if (unsubscribeBehaviors) unsubscribeBehaviors();
+    if (unsubscribeTodayLogs) unsubscribeTodayLogs();
+    els.studentButtons.innerHTML = "";
+    els.behaviorGrid.innerHTML = "";
+    els.todayLog.innerHTML = `<div class="log-item muted">Sign in to view logs.</div>`;
+    updateStudentState();
+  }
+});
