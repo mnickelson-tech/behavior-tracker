@@ -189,7 +189,7 @@ async function loadStudents() {
   const docRef = fb.doc(db, STUDENTS_DOC);
   const docSnap = await (await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js")).getDoc(docRef);
   if (docSnap.exists()) {
-    students = docSnap.data().students || [];
+   students = (docSnap.data().students || []).map(normalizeStudentInitials);
   } else {
     students = [];
   }
@@ -224,7 +224,7 @@ function startTodayLogsListener() {
 // Add student
 els.addStudentBtn.addEventListener("click", async () => {
   if (!user) return;
-  const name = els.studentInput.value.trim();
+ const name = normalizeStudentInitials(els.studentInput.value);
   if (!name) return;
   if (!students.includes(name)) students.push(name);
   currentStudent = name;
@@ -259,4 +259,5 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
