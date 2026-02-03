@@ -1,3 +1,4 @@
+<!-- sped.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -10,44 +11,48 @@
   <div class="container">
     <header class="header">
       <h1>Behavior Tracker — SPED Admin</h1>
-      <p class="sub">Manage the behavior buttons teachers see.</p>
+      <p class="sub">Manage behavior buttons teachers see.</p>
     </header>
 
+    <div class="card" style="margin-bottom:14px;">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <strong id="userLabel">Not signed in</strong><br />
+          <span class="muted" id="userRoleLabel">Role: —</span>
+        </div>
+        <div class="row">
+          <button class="btn btn-blue" id="loginBtn">Sign in</button>
+          <button class="btn btn-gray" id="logoutBtn" style="display:none;">Sign out</button>
+        </div>
+      </div>
+    </div>
+
     <main class="main">
-      <section class="card">
-        <h2>Behavior Buttons (Teacher Side)</h2>
+      <section class="card" id="adminPanel" style="display:none;">
+        <h2>Teacher Buttons</h2>
 
         <div class="row">
           <input id="newBehaviorName" class="input" type="text" placeholder="Add behavior (e.g., Elopement)" />
           <select id="newBehaviorCategory" class="input">
-            <option value="Physical Aggression">Physical Aggression</option>
-            <option value="Verbal Aggression">Verbal Aggression</option>
-            <option value="Disruption">Disruption</option>
-            <option value="Noncompliance">Noncompliance</option>
-            <option value="Other">Other</option>
+            <option>Physical Aggression</option>
+            <option>Verbal Aggression</option>
+            <option>Disruption</option>
+            <option>Noncompliance</option>
+            <option>Other</option>
           </select>
           <button id="addBehaviorBtn" class="btn btn-green">Add</button>
         </div>
 
         <div id="behaviorAdminList" class="admin-list"></div>
-
-        <div class="row" style="margin-top:12px;">
-          <button id="restoreDefaultsBtn" class="btn btn-gray">Restore Defaults</button>
-          <button id="exportCsvBtn" class="btn btn-blue">Export Logs (CSV)</button>
-        </div>
       </section>
 
-      <section class="card">
-        <h2>Quick Notes</h2>
-        <ul class="bullets">
-          <li>Changes here update the Teacher page instantly (same browser/device).</li>
-          <li>If you want this shared across devices, we’ll plug in Firebase or your dataSdk.</li>
-        </ul>
+      <section class="card" id="noAccessPanel" style="display:none;">
+        <h2>No Access</h2>
+        <p class="muted">Your email isn’t on the SPED admin list for this tool.</p>
       </section>
     </main>
   </div>
 
-  <script src="store.js"></script>
-  <script src="sped.js"></script>
+  <script type="module" src="js/sped.js"></script>
 </body>
 </html>
