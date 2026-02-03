@@ -23,6 +23,7 @@ const els = {
   newBehaviorCategory: document.getElementById("newBehaviorCategory"),
   addBehaviorBtn: document.getElementById("addBehaviorBtn"),
   behaviorAdminList: document.getElementById("behaviorAdminList"),
+  exportCsvBtn: document.getElementById("exportCsvBtn"),
 };
 
 function isAdminEmail(email) {
@@ -77,6 +78,59 @@ function startBehaviorsListener() {
   });
 }
 
+async function exportLogsToCsv() {
+  // Pull all logs ordered by createdAt (oldest -> newest)
+  const q = fb.query(fb.collection(db, "logs"), fb.orderBy("createdAt", "asc"));
+  const snap = await fb.getDocs(q);
+
+  const headers = [
+    "date",
+    "time",
+    "studentInitials",
+    "behavior",
+    "category",
+    "teacherEmail"
+  ];
+
+  const esc = (v) => {
+    const s = String(v ?? "");
+    return `"${s.replaceAll('"', '""')}"`;
+  };
+
+  const rows = [headers.join(",")];
+
+  snap.forEach(docSnap => {
+    const l = docSnap.data();
+
+    // Firestore Timestamp -> JS Date
+    const dt = l.createdAt?.toDate ? l.createdAt.toDate() : null;
+
+    const date = dt ? dt.toLocaleDateString() : (l.dayKey || "");
+    const time = dt ? dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+
+    rows.push([
+      esc(date),
+      esc(time),
+      esc(l.studentName || ""),        // already initials from teacher side
+      esc(l.behaviorName || ""),
+      esc(l.category || ""),
+      esc(l.teacherEmail || "")
+    ].join(","));
+  });
+
+  const csv = rows.join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "behavior_logs.csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 els.addBehaviorBtn.addEventListener("click", async () => {
   if (!user) return;
   if (!isAdminEmail(user.email)) return;
@@ -117,6 +171,11 @@ wireAuthUI({
       els.noAccessPanel.style.display = "block";
       if (unsubscribeBehaviors) unsubscribeBehaviors();
     }
+    els.exportCsvBtn.addEventListener("click", async () => {
+  if (!user) return;
+  if (!isAdminEmail(user.email)) return;
+  await exportLogsToCsv();
+});
   },
   onSignedOut: () => {
     user = null;
@@ -126,4 +185,5 @@ wireAuthUI({
     els.noAccessPanel.style.display = "none";
   }
 });
+
 
