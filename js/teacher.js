@@ -82,6 +82,27 @@ function updateStudentState() {
   });
 }
 
+function renderGradeTabs() {
+  const wrap = document.getElementById("gradeTabs");
+  if (!wrap) return;
+
+  wrap.innerHTML = "";
+  GRADE_OPTIONS.forEach(g => {
+    const btn = document.createElement("button");
+    btn.className = "grade-tab" + (g === selectedGrade ? " active" : "");
+    btn.type = "button";
+    btn.textContent = g;
+    btn.addEventListener("click", () => {
+      selectedGrade = g;
+      renderGradeTabs();
+      renderStudents();       // will render from selectedGrade
+      updateStudentState();   // keeps your UI consistent
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+
 function renderStudents() {
   els.studentButtons.innerHTML = students.map(name => `
     <button class="student-btn ${currentStudent === name ? "active" : ""}" data-student="${encodeURIComponent(name)}">
@@ -297,6 +318,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
