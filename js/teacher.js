@@ -287,16 +287,23 @@ els.addStudentBtn.addEventListener("click", async () => {
   currentStudent = name;
   els.studentInput.value = "";
 
-  // ✅ Write student into the selected grade bucket
-  const gradeField = `studentsByGrade.${selectedGrade}`;
+  const docRef = fb.doc(db, STUDENTS_DOC(user.uid));
+  const snap = await fb.getDoc(docRef);
+  const data = snap.exists() ? snap.data() : {};
+
+  const byGrade = data.studentsByGrade || {};
+  const list = byGrade[selectedGrade] || [];
+
+  if (!list.includes(name)) {
+    list.push(name);
+  }
+
+  byGrade[selectedGrade] = list;
 
   await fb.setDoc(
-    fb.doc(db, STUDENTS_DOC(user.uid)))
+    docRef,
     {
-      [gradeField]: fb.arrayUnion(name),
-      // optional metadata (nice to have)
-      teacherUid: user.uid,
-      teacherEmail: user.email,
+      studentsByGrade: byGrade,
       updatedAt: fb.serverTimestamp(),
     },
     { merge: true }
@@ -331,6 +338,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
