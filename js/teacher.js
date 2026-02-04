@@ -283,19 +283,35 @@ function startTodayLogsListener() {
 // Add student
 els.addStudentBtn.addEventListener("click", async () => {
   if (!user) return;
- const name = normalizeStudentInitials(els.studentInput.value);
+
+  const name = normalizeStudentInitials(els.studentInput.value);
   if (!name) return;
-  if (!students.includes(name)) students.push(name);
+
   currentStudent = name;
   els.studentInput.value = "";
-  await fb.setDoc(fb.doc(db, STUDENTS_DOC), { students }, { merge: true });
+
+  // ✅ Write student into the selected grade bucket
+  const gradeField = `studentsByGrade.${selectedGrade}`;
+
+  await fb.setDoc(
+    fb.doc(db, STUDENTS_DOC),
+    {
+      [gradeField]: fb.arrayUnion(name),
+      // optional metadata (nice to have)
+      teacherUid: user.uid,
+      teacherEmail: user.email,
+      updatedAt: fb.serverTimestamp(),
+    },
+    { merge: true }
+  );
+
   renderStudents();
   updateStudentState();
 });
+
 els.studentInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") els.addStudentBtn.click();
 });
-
 // Auth wiring (teachers do not need admin)
 wireAuthUI({
   isAdminEmail: () => false,
@@ -318,6 +334,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
