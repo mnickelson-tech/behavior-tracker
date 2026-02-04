@@ -200,13 +200,12 @@ function renderTodayLogs(logDocs) {
     return;
   }
 
-
   els.todayLog.innerHTML = logDocs.map(d => {
     const l = d.data();
-    // createdAt is a Firestore Timestamp; may be null immediately until server resolves
-    const time = l.createdAt?.toDate ? l.createdAt.toDate().toLocaleTimeString("en-US", {
-      hour: "2-digit", minute: "2-digit", second: "2-digit"
-    }) : "…";
+    const time = l.createdAt?.toDate
+      ? l.createdAt.toDate().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      : "…";
+
     return `
       <div class="log-item">
         <div><strong>${l.studentName}</strong> — ${l.behaviorName}</div>
@@ -215,6 +214,7 @@ function renderTodayLogs(logDocs) {
     `;
   }).join("");
 }
+
 onSignedIn: async (u) => {
   user = u;
   renderGradeTabs();
@@ -331,6 +331,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
