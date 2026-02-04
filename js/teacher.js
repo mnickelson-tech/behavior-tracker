@@ -319,12 +319,13 @@ els.studentInput.addEventListener("keypress", (e) => {
 // Auth wiring (teachers do not need admin)
 wireAuthUI({
   isAdminEmail: () => false,
-  onSignedIn: async (u) => {
-    user = u;
-    await loadStudents();
-    startBehaviorListener();
-    startTodayLogsListener();
-  },
+ onSignedIn: async (u) => {
+  user = u;
+  renderGradeTabs();      // ✅ ADD THIS
+  await loadStudents();
+  startBehaviorListener();
+  startTodayLogsListener();
+},
   onSignedOut: () => {
     user = null;
     students = [];
@@ -338,6 +339,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
