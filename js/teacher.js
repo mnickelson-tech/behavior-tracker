@@ -5,7 +5,7 @@ import { wireAuthUI } from "./auth-ui.js";
 // Collection paths
 const BEHAVIORS_COL = "behaviors";
 const LOGS_COL = "logs";
-const STUDENTS_DOC = "app/students"; // simple shared doc for student list (optional)
+const STUDENTS_DOC = (uid) => `teacherStudents/${uid}`;
 const GRADE_OPTIONS = ["PK","K","1","2","3","4","5","6"];
 let selectedGrade = "K"; // default (change if you want)
 
@@ -126,11 +126,19 @@ function renderStudents() {
     x.addEventListener("click", async (e) => {
       e.stopPropagation();
       const s = decodeURIComponent(x.dataset.del);
-      students = students.filter(n => n !== s);
-      if (currentStudent === s) currentStudent = null;
-      await fb.setDoc(fb.doc(db, STUDENTS_DOC), { students }, { merge: true });
-      renderStudents();
-      updateStudentState();
+     students = students.filter(n => n !== s);
+if (currentStudent === s) currentStudent = null;
+
+const docRef = fb.doc(db, STUDENTS_DOC(user.uid));
+const snap = await fb.getDoc(docRef);
+const data = snap.exists() ? (snap.data() || {}) : {};
+const byGrade = data.studentsByGrade || {};
+byGrade[selectedGrade] = (byGrade[selectedGrade] || []).filter(n => n !== s);
+
+await fb.setDoc(docRef, { studentsByGrade: byGrade, updatedAt: fb.serverTimestamp() }, { merge: true });
+
+renderStudents();
+updateStudentState();
     });
   });
 }
@@ -171,6 +179,7 @@ function renderBehaviors() {
 
       await fb.addDoc(fb.collection(db, LOGS_COL), {
         dayKey: todayKey(),
+        grade: selectedGrade,
         studentName: currentStudent, // consider initials/ID for privacy
         behaviorId: behavior.id,
         behaviorName: behavior.name,
@@ -190,25 +199,7 @@ function renderTodayLogs(logDocs) {
     els.todayLog.innerHTML = `<div class="log-item muted">No logs yet today.</div>`;
     return;
   }
-  function renderGradeTabs() {
-  const wrap = document.getElementById("gradeTabs");
-  if (!wrap) return;
 
-  wrap.innerHTML = "";
-  GRADE_OPTIONS.forEach(g => {
-    const btn = document.createElement("button");
-    btn.className = "grade-tab" + (g === selectedGrade ? " active" : "");
-    btn.type = "button";
-    btn.textContent = g;
-    btn.addEventListener("click", () => {
-      selectedGrade = g;
-      renderGradeTabs();
-      renderStudents();       // will render from selectedGrade
-      updateStudentState();   // keeps your UI consistent
-    });
-    wrap.appendChild(btn);
-  });
-}
 
   els.todayLog.innerHTML = logDocs.map(d => {
     const l = d.data();
@@ -224,17 +215,23 @@ function renderTodayLogs(logDocs) {
     `;
   }).join("");
 }
-
+onSignedIn: async (u) => {
+  user = u;
+  renderGradeTabs();
+  await loadStudents();
+  startBehaviorListener();
+  startTodayLogsListener();
+},
 async function loadStudents() {
-  const snap = await fb.getDocs(fb.query(fb.collection(db, "app"))); // noop, just ensure db
-  // We'll store students in a single doc: app/students
-  const docRef = fb.doc(db, STUDENTS_DOC);
-  const docSnap = await (await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js")).getDoc(docRef);
-  if (docSnap.exists()) {
-   const data = docSnap.data() || {};
-const byGrade = data.studentsByGrade || {};
-students = byGrade[selectedGrade] || [];
-  }
+  if (!user) return;
+
+  const docRef = fb.doc(db, STUDENTS_DOC(user.uid));
+  const docSnap = await fb.getDoc(docRef);
+
+  const data = docSnap.exists() ? (docSnap.data() || {}) : {};
+  const byGrade = data.studentsByGrade || {};
+  students = byGrade[selectedGrade] || [];
+
   renderStudents();
   updateStudentState();
 }
@@ -294,7 +291,7 @@ els.addStudentBtn.addEventListener("click", async () => {
   const gradeField = `studentsByGrade.${selectedGrade}`;
 
   await fb.setDoc(
-    fb.doc(db, STUDENTS_DOC),
+    fb.doc(db, STUDENTS_DOC(user.uid))
     {
       [gradeField]: fb.arrayUnion(name),
       // optional metadata (nice to have)
@@ -334,6 +331,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
