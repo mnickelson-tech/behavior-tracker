@@ -231,9 +231,9 @@ async function loadStudents() {
   const docRef = fb.doc(db, STUDENTS_DOC);
   const docSnap = await (await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js")).getDoc(docRef);
   if (docSnap.exists()) {
-   students = (docSnap.data().students || []).map(normalizeStudentInitials);
-  } else {
-    students = [];
+   const data = docSnap.data() || {};
+const byGrade = data.studentsByGrade || {};
+students = byGrade[selectedGrade] || [];
   }
   renderStudents();
   updateStudentState();
@@ -334,6 +334,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
