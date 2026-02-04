@@ -291,7 +291,7 @@ els.addStudentBtn.addEventListener("click", async () => {
   const gradeField = `studentsByGrade.${selectedGrade}`;
 
   await fb.setDoc(
-    fb.doc(db, STUDENTS_DOC(user.uid))
+    fb.doc(db, STUDENTS_DOC(user.uid)))
     {
       [gradeField]: fb.arrayUnion(name),
       // optional metadata (nice to have)
@@ -331,6 +331,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
