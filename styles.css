@@ -223,7 +223,24 @@ h2{ margin:0 0 10px; color: var(--primary); font-size: 18px; }
   .kpi-grid{ grid-template-columns: repeat(2, minmax(160px, 1fr)); }
 }
 
-.grade-tabs { display:flex; gap:8px; flex-wrap:wrap; margin: 0 0 12px; }
-.grade-tab { padding:8px 12px; border-radius:12px; border:1px solid #ddd; background:#fff; cursor:pointer; }
-.grade-tab.active { font-weight:700; border-color:#333; }
+.grade-tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin: 0 0 12px;
+}
+
+.grade-tab{
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid #d7d7d7;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.grade-tab.active{
+  border-color: #222;
+}
+
 
