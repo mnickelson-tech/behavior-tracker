@@ -92,16 +92,16 @@ function renderGradeTabs() {
     btn.className = "grade-tab" + (g === selectedGrade ? " active" : "");
     btn.type = "button";
     btn.textContent = g;
-    btn.addEventListener("click", () => {
+
+    btn.addEventListener("click", async () => {
       selectedGrade = g;
       renderGradeTabs();
-      renderStudents();       // will render from selectedGrade
-      updateStudentState();   // keeps your UI consistent
+      await loadStudents();   // ✅ reload list for this grade
     });
+
     wrap.appendChild(btn);
   });
 }
-
 
 function renderStudents() {
   els.studentButtons.innerHTML = students.map(name => `
@@ -309,8 +309,7 @@ els.addStudentBtn.addEventListener("click", async () => {
     { merge: true }
   );
 
-  renderStudents();
-  updateStudentState();
+await loadStudents();
 });
 
 els.studentInput.addEventListener("keypress", (e) => {
@@ -339,6 +338,7 @@ wireAuthUI({
     updateStudentState();
   }
 });
+
 
 
 
