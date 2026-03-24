@@ -43,22 +43,19 @@ function normalizeStudentInitials(input) {
     .split(/\s+/)
     .filter(Boolean);
 
-  if (parts.length === 1 && parts[0].length > 1) {
-    const letters = parts[0].replace(/[^a-zA-Z]/g, "");
-    if (letters.length >= 2 && letters.length <= 4) {
-      return letters
-        .toUpperCase()
-        .split("")
-        .map(ch => `${ch}.`)
-        .join("");
-    }
-  }
+  if (parts.length === 0) return "";
 
-  return parts
-    .slice(0, 3)
-    .map(p => p[0].toUpperCase())
-    .map(ch => `${ch}.`)
-    .join("");
+  // First 2 letters of first name
+  const firstName = parts[0].substring(0, 2).toUpperCase();
+  
+  // First 3 letters of last name (if it exists)
+  if (parts.length >= 2) {
+    const lastName = parts[1].substring(0, 3).toUpperCase();
+    return firstName + lastName;
+  }
+  
+  // If no last name, just return first name (2 letters)
+  return firstName;
 }
 
 function todayKey() {
