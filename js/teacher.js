@@ -84,8 +84,17 @@ function updateStudentState() {
     els.noStudentWarning.style.display = "block";
   }
 
+  // Update behavior button states (now divs instead of buttons)
   els.behaviorGrid.querySelectorAll(".behavior-btn").forEach(btn => {
-    btn.disabled = !currentStudent;
+    if (!currentStudent) {
+      btn.style.opacity = "0.5";
+      btn.style.cursor = "not-allowed";
+      btn.style.pointerEvents = "none";
+    } else {
+      btn.style.opacity = "1";
+      btn.style.cursor = "pointer";
+      btn.style.pointerEvents = "auto";
+    }
   });
 }
 
@@ -175,9 +184,10 @@ function renderBehaviors() {
   const favoritesBehaviors = behaviors.filter(b => favorites.includes(b.id));
   if (favoritesBehaviors.length > 0) {
     const favItems = favoritesBehaviors.map(b => `
-      <button class="behavior-btn" data-id="${b.id}" ${!currentStudent ? "disabled" : ""} style="background: #fef3c7; border-color: #fcd34d; color: #92400e; font-weight: 900;">
+      <div class="behavior-btn" data-id="${b.id}" style="background: #fef3c7; border-color: #fcd34d; color: #92400e; font-weight: 900; display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 12px; border: 2px solid #fcd34d; cursor: pointer; transition: all 0.2s;">
         <div style="flex: 1; text-align: left;">⭐ ${b.name}</div>
-      </button>
+        <span class="star-btn favorite" data-star-id="${b.id}" title="Remove from favorites" style="font-size: 18px; cursor: pointer;">★</span>
+      </div>
     `).join("");
 
     favoritesHtml = `
@@ -194,7 +204,7 @@ function renderBehaviors() {
       .map(b => {
         const isFavorited = favorites.includes(b.id);
         return `
-        <div class="behavior-btn" data-id="${b.id}" style="display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 12px; border: 2px solid var(--gray); background: #f7fafc; cursor: ${!currentStudent ? 'not-allowed' : 'pointer'}; font-weight: 800; ${!currentStudent ? 'opacity: 0.5;' : ''}" ${!currentStudent ? 'disabled' : ''}>
+        <div class="behavior-btn" data-id="${b.id}" style="display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 12px; border: 2px solid var(--gray); background: #f7fafc; cursor: pointer; font-weight: 800; transition: all 0.2s;">
           <span>${b.name}</span>
           <span class="star-btn ${isFavorited ? "favorite" : "unfavorite"}" data-star-id="${b.id}" title="${isFavorited ? "Remove from favorites" : "Add to favorites"}" style="font-size: 18px; cursor: pointer;">★</span>
         </div>
