@@ -224,19 +224,28 @@ function renderBehaviors() {
   // Handle star button clicks (prevent triggering behavior log)
   els.behaviorGrid.querySelectorAll(".star-btn").forEach(starBtn => {
     starBtn.addEventListener("click", async (e) => {
+      console.log("Star clicked!", e);
       e.preventDefault();
       e.stopPropagation();
-      if (!user) return;
+      if (!user) {
+        console.log("No user, returning");
+        return;
+      }
       
       const behaviorId = starBtn.dataset.starId;
+      console.log("Favoriting behavior:", behaviorId, "Current favorites:", favorites);
       
       if (favorites.includes(behaviorId)) {
         // Remove from favorites
         favorites = favorites.filter(id => id !== behaviorId);
+        console.log("Removed from favorites");
       } else {
         // Add to favorites
         favorites.push(behaviorId);
+        console.log("Added to favorites");
       }
+      
+      console.log("New favorites:", favorites);
       
       // Save to Firebase
       const docRef = fb.doc(db, `teacherFavorites/${user.uid}`);
@@ -246,16 +255,29 @@ function renderBehaviors() {
         { merge: true }
       );
       
+      console.log("Saved to Firebase, re-rendering behaviors");
       renderBehaviors();
     });
   });
 
   els.behaviorGrid.querySelectorAll(".behavior-btn").forEach(btn => {
     btn.addEventListener("click", async (e) => {
-      if (e.target.classList.contains("star-btn")) return;
-      if (!user || !currentStudent) return;
+      // Check if click target or any parent is a star button
+      if (e.target.closest(".star-btn")) {
+        console.log("Star button clicked, not logging behavior");
+        return;
+      }
+      if (!user || !currentStudent) {
+        console.log("No user or student, returning");
+        return;
+      }
       const behavior = behaviors.find(b => b.id === btn.dataset.id);
-      if (!behavior) return;
+      if (!behavior) {
+        console.log("Behavior not found");
+        return;
+      }
+
+      console.log("Logging behavior:", behavior.name);
 
       // Log immediately without modal
       await fb.addDoc(fb.collection(db, LOGS_COL), {
