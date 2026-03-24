@@ -43,22 +43,15 @@ function normalizeStudentInitials(input) {
     .split(/\s+/)
     .filter(Boolean);
 
-  if (parts.length === 1 && parts[0].length > 1) {
-    const letters = parts[0].replace(/[^a-zA-Z]/g, "");
-    if (letters.length >= 2 && letters.length <= 4) {
-      return letters
-        .toUpperCase()
-        .split("")
-        .map(ch => `${ch}.`)
-        .join("");
-    }
-  }
+  if (!parts.length) return "";
 
-  return parts
-    .slice(0, 3)
-    .map(p => p[0].toUpperCase())
-    .map(ch => `${ch}.`)
-    .join("");
+  const firstName = parts[0] || "";
+  const lastName = parts.length > 1 ? parts[parts.length - 1] : "";
+
+  const firstChunk = firstName.slice(0, 2);
+  const lastChunk = lastName.slice(0, 3);
+
+  return `${firstChunk}${lastChunk}`.toUpperCase();
 }
 
 function todayKey() {
