@@ -66,7 +66,22 @@
       </section>
     </main>
   </div>
-
+  <!-- 📝 Notes Modal -->
+  <div id="notesModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3 id="notesModalTitle">Add Notes</h3>
+      <textarea
+        id="notesInput"
+        class="input notes-textarea"
+        placeholder="Optional notes (e.g., what triggered this, context)…"
+        rows="4"
+      ></textarea>
+      <div class="row" style="justify-content:flex-end; margin-top:12px; gap:8px;">
+        <button class="btn btn-gray" id="notesCancelBtn">Cancel</button>
+        <button class="btn btn-blue" id="notesSaveBtn">Save & Log</button>
+      </div>
+    </div>
+  </div>
   <script type="module" src="js/teacher.js"></script>
 </body>
 </html>
