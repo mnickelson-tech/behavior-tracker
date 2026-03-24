@@ -169,10 +169,58 @@ h2{ margin:0 0 10px; color: var(--primary); font-size: 18px; }
 
 .bullets{ margin: 0; padding-left: 18px; color: var(--muted); font-weight: 600; }
 
+.star-btn{
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.star-btn.unfavorite{ color: #cbd5e0; }
+.star-btn.favorite{ color: #f59e0b; }
+
+.favorites-section{
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #fffbf0;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+}
+.favorites-section h3{
+  margin: 0 0 10px 0;
+  color: #92400e;
+  font-size: 14px;
+  font-weight: 700;
+}
+.favorites-grid{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
 @media (max-width: 768px){
+  .container{ padding: 12px; }
+  .header h1{ font-size: 22px; }
+  .header .sub{ font-size: 13px; }
+  .card{ padding: 12px; }
   .student-buttons{ grid-template-columns: 1fr; }
   .behavior-grid{ grid-template-columns: 1fr; }
-  .input{ min-width: 0; width: 100%; }
+  .input{ min-width: 0; width: 100%; padding: 12px; font-size: 16px; }
+  .btn{ padding: 12px 14px; font-size: 14px; }
+  .btn-blue, .btn-green, .btn-gray, .btn-danger{ min-height: 44px; }
+  .behavior-btn{ padding: 12px; font-size: 14px; }
+  .log-item{ padding: 12px; font-size: 13px; }
+  .row{ gap: 8px; }
+  .current-student{ font-size: 14px; }
+  h2{ font-size: 16px; }
+  .grade-tabs{ gap: 6px; }
+  .grade-tab{ padding: 8px 12px; font-size: 12px; }
+  .modal-content{ max-width: 90vw; padding: 16px; }
+  .notes-textarea{ font-size: 16px; }
+  .favorites-grid{ grid-template-columns: 1fr; }
 }
 
 .kpi-grid{

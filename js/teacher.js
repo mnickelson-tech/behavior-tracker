@@ -24,6 +24,7 @@ let unsubscribeBehaviors = null;
 let unsubscribeTodayLogs = null;
 let todayLogDocs = [];
 let pendingNoteDocId = null;
+let favorites = []; // Array of behavior IDs that are favorited
 
 const els = {
   studentButtons: document.getElementById("studentButtons"),
@@ -165,14 +166,36 @@ function renderBehaviors() {
     byCat[cat].push(b);
   }
 
+  // Render favorites first if any exist
+  let favoritesHtml = "";
+  const favoritesBehaviors = behaviors.filter(b => favorites.includes(b.id));
+  if (favoritesBehaviors.length > 0) {
+    const favItems = favoritesBehaviors.map(b => `
+      <button class="behavior-btn" data-id="${b.id}" ${!currentStudent ? "disabled" : ""} style="background: #fef3c7; border-color: #fcd34d; color: #92400e; font-weight: 900;">
+        <div style="flex: 1; text-align: left;">⭐ ${b.name}</div>
+      </button>
+    `).join("");
+
+    favoritesHtml = `
+      <div class="favorites-section">
+        <h3>⭐ Favorites (Quick Access)</h3>
+        <div class="favorites-grid">${favItems}</div>
+      </div>
+    `;
+  }
+
   const sections = Object.keys(byCat).sort().map(cat => {
     const items = byCat[cat]
       .sort((a,b) => (a.name || "").localeCompare(b.name || ""))
-      .map(b => `
-        <button class="behavior-btn" data-id="${b.id}" ${!currentStudent ? "disabled" : ""}>
+      .map(b => {
+        const isFavorited = favorites.includes(b.id);
+        return `
+        <button class="behavior-btn" data-id="${b.id}" ${!currentStudent ? "disabled" : ""} style="justify-content: space-between;">
           <span>${b.name}</span>
+          <button type="button" class="star-btn ${isFavorited ? "favorite" : "unfavorite"}" data-star-id="${b.id}" title="${isFavorited ? "Remove from favorites" : "Add to favorites"}">★</button>
         </button>
-      `).join("");
+      `;
+      }).join("");
 
     return `
       <div style="margin-bottom:12px;">
@@ -182,10 +205,40 @@ function renderBehaviors() {
     `;
   }).join("");
 
-  els.behaviorGrid.innerHTML = sections;
+  els.behaviorGrid.innerHTML = favoritesHtml + sections;
+
+  // Handle star button clicks (prevent triggering behavior log)
+  els.behaviorGrid.querySelectorAll(".star-btn").forEach(starBtn => {
+    starBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!user) return;
+      
+      const behaviorId = starBtn.dataset.starId;
+      
+      if (favorites.includes(behaviorId)) {
+        // Remove from favorites
+        favorites = favorites.filter(id => id !== behaviorId);
+      } else {
+        // Add to favorites
+        favorites.push(behaviorId);
+      }
+      
+      // Save to Firebase
+      const docRef = fb.doc(db, `teacherFavorites/${user.uid}`);
+      await fb.setDoc(
+        docRef,
+        { favoriteBehaviors: favorites, updatedAt: fb.serverTimestamp() },
+        { merge: true }
+      );
+      
+      renderBehaviors();
+    });
+  });
 
   els.behaviorGrid.querySelectorAll(".behavior-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("star-btn")) return;
       if (!user || !currentStudent) return;
       const behavior = behaviors.find(b => b.id === btn.dataset.id);
       if (!behavior) return;
@@ -265,6 +318,19 @@ async function loadStudents() {
 
   renderStudents();
   updateStudentState();
+}
+
+async function loadFavorites() {
+  if (!user) return;
+  
+  const docRef = fb.doc(db, `teacherFavorites/${user.uid}`);
+  const snap = await getDoc(docRef);
+  
+  if (snap.exists()) {
+    favorites = snap.data().favoriteBehaviors || [];
+  } else {
+    favorites = [];
+  }
 }
 
 function startBehaviorListener() {
@@ -375,6 +441,7 @@ wireAuthUI({
   isAdminEmail: () => false,
   onSignedIn: async (u) => {
     user = u;
+    await loadFavorites(); // ✅ Load favorites first
     renderGradeTabs();     // ✅ tabs show
     await loadStudents();
     startBehaviorListener();
@@ -385,6 +452,7 @@ wireAuthUI({
     students = [];
     behaviors = [];
     currentStudent = null;
+    favorites = [];
 
     if (unsubscribeBehaviors) unsubscribeBehaviors();
     if (unsubscribeTodayLogs) unsubscribeTodayLogs();
