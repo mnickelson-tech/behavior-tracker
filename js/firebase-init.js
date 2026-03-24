@@ -20,6 +20,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -51,6 +52,7 @@ export const fb = {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
   Timestamp
 };

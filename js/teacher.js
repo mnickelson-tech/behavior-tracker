@@ -22,7 +22,8 @@ let behaviors = [];
 let currentStudent = null;
 let unsubscribeBehaviors = null;
 let unsubscribeTodayLogs = null;
-let pendingBehavior = null;
+let todayLogDocs = [];
+let pendingNoteDocId = null;
 
 const els = {
   studentButtons: document.getElementById("studentButtons"),
@@ -189,12 +190,18 @@ function renderBehaviors() {
       const behavior = behaviors.find(b => b.id === btn.dataset.id);
       if (!behavior) return;
 
-      // Store the pending behavior and show the modal
-      pendingBehavior = behavior;
-      els.notesModalTitle.textContent = `Add Notes for "${behavior.name}"`;
-      els.notesInput.value = "";
-      els.notesModal.style.display = "flex";
-      els.notesInput.focus();
+      // Log immediately without modal
+      await fb.addDoc(fb.collection(db, LOGS_COL), {
+        dayKey: todayKey(),
+        grade: selectedGrade,
+        studentName: currentStudent,
+        behaviorId: behavior.id,
+        behaviorName: behavior.name,
+        category: behavior.category || "Other",
+        teacherUid: user.uid,
+        teacherEmail: user.email || "",
+        createdAt: fb.serverTimestamp()
+      });
     });
   });
 
@@ -207,22 +214,42 @@ function renderTodayLogs(logDocs) {
     return;
   }
 
-  els.todayLog.innerHTML = logDocs.map(d => {
+  todayLogDocs = logDocs;
+
+  els.todayLog.innerHTML = logDocs.map((d, idx) => {
     const l = d.data();
     const time = l.createdAt?.toDate
       ? l.createdAt.toDate().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
       : "…";
 
     const notesHtml = l.notes ? `<div class="muted" style="margin-top: 6px; font-size: 13px; font-style: italic;">📝 ${l.notes}</div>` : "";
+    const addNoteBtn = idx < 5 ? `<button class="btn-add-note" data-idx="${idx}" style="margin-top: 8px; padding: 4px 8px; font-size: 12px;">+ Add Note</button>` : "";
 
     return `
       <div class="log-item">
         <div><strong>${l.studentName}</strong> — ${l.behaviorName}</div>
         <div class="muted">${time}</div>
         ${notesHtml}
+        ${addNoteBtn}
       </div>
     `;
   }).join("");
+
+  // Attach click handlers to add note buttons
+  els.todayLog.querySelectorAll(".btn-add-note").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const idx = parseInt(btn.dataset.idx);
+      const doc = todayLogDocs[idx];
+      if (!doc) return;
+
+      const l = doc.data();
+      pendingNoteDocId = doc.id;
+      els.notesModalTitle.textContent = `Add Note for "${l.behaviorName}"`;
+      els.notesInput.value = l.notes || "";
+      els.notesModal.style.display = "flex";
+      els.notesInput.focus();
+    });
+  });
 }
 
 async function loadStudents() {
@@ -316,38 +343,30 @@ els.studentInput.addEventListener("keypress", (e) => {
 
 // Modal handlers for notes
 els.notesSaveBtn.addEventListener("click", async () => {
-  if (!user || !currentStudent || !pendingBehavior) return;
+  if (!user || !pendingNoteDocId) return;
 
   const notes = els.notesInput.value.trim();
 
-  await fb.addDoc(fb.collection(db, LOGS_COL), {
-    dayKey: todayKey(),
-    grade: selectedGrade,
-    studentName: currentStudent,
-    behaviorId: pendingBehavior.id,
-    behaviorName: pendingBehavior.name,
-    category: pendingBehavior.category || "Other",
-    notes: notes || null,
-    teacherUid: user.uid,
-    teacherEmail: user.email || "",
-    createdAt: fb.serverTimestamp()
+  const docRef = fb.doc(db, LOGS_COL, pendingNoteDocId);
+  await fb.updateDoc(docRef, {
+    notes: notes || null
   });
 
   // Close modal
   els.notesModal.style.display = "none";
-  pendingBehavior = null;
+  pendingNoteDocId = null;
 });
 
 els.notesCancelBtn.addEventListener("click", () => {
   els.notesModal.style.display = "none";
-  pendingBehavior = null;
+  pendingNoteDocId = null;
 });
 
 // Close modal when clicking outside
 els.notesModal.addEventListener("click", (e) => {
   if (e.target === els.notesModal) {
     els.notesModal.style.display = "none";
-    pendingBehavior = null;
+    pendingNoteDocId = null;
   }
 });
 

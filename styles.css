@@ -286,4 +286,21 @@ h2{ margin:0 0 10px; color: var(--primary); font-size: 18px; }
   border-color: var(--primary);
 }
 
+.btn-add-note{
+  background: #e6eeff;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.btn-add-note:hover{
+  background: var(--primary);
+  color: #fff;
+}
+
 
