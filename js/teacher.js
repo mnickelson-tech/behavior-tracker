@@ -194,10 +194,10 @@ function renderBehaviors() {
       .map(b => {
         const isFavorited = favorites.includes(b.id);
         return `
-        <button class="behavior-btn" data-id="${b.id}" ${!currentStudent ? "disabled" : ""} style="justify-content: space-between;">
+        <div class="behavior-btn" data-id="${b.id}" style="display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 12px; border: 2px solid var(--gray); background: #f7fafc; cursor: ${!currentStudent ? 'not-allowed' : 'pointer'}; font-weight: 800; ${!currentStudent ? 'opacity: 0.5;' : ''}" ${!currentStudent ? 'disabled' : ''}>
           <span>${b.name}</span>
-          <button type="button" class="star-btn ${isFavorited ? "favorite" : "unfavorite"}" data-star-id="${b.id}" title="${isFavorited ? "Remove from favorites" : "Add to favorites"}">★</button>
-        </button>
+          <span class="star-btn ${isFavorited ? "favorite" : "unfavorite"}" data-star-id="${b.id}" title="${isFavorited ? "Remove from favorites" : "Add to favorites"}" style="font-size: 18px; cursor: pointer;">★</span>
+        </div>
       `;
       }).join("");
 
