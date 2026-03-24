@@ -91,7 +91,10 @@ function updateStudentState() {
 
 function renderGradeTabs() {
   const wrap = document.getElementById("gradeTabs");
-  if (!wrap) return;
+  if (!wrap) {
+    console.error("gradeTabs element not found!");
+    return;
+  }
 
   wrap.innerHTML = "";
   for (const g of GRADE_OPTIONS) {
@@ -108,6 +111,7 @@ function renderGradeTabs() {
 
     wrap.appendChild(btn);
   }
+  console.log("Grade tabs rendered:", GRADE_OPTIONS);
 }
 
 function renderStudents() {
@@ -323,13 +327,18 @@ async function loadStudents() {
 async function loadFavorites() {
   if (!user) return;
   
-  const docRef = fb.doc(db, `teacherFavorites/${user.uid}`);
-  const snap = await getDoc(docRef);
-  
-  if (snap.exists()) {
-    favorites = snap.data().favoriteBehaviors || [];
-  } else {
-    favorites = [];
+  try {
+    const docRef = fb.doc(db, `teacherFavorites/${user.uid}`);
+    const snap = await getDoc(docRef);
+    
+    if (snap.exists()) {
+      favorites = snap.data().favoriteBehaviors || [];
+    } else {
+      favorites = [];
+    }
+  } catch (err) {
+    console.error("Error loading favorites:", err);
+    favorites = []; // Don't break if favorites fail
   }
 }
 
@@ -441,8 +450,10 @@ wireAuthUI({
   isAdminEmail: () => false,
   onSignedIn: async (u) => {
     user = u;
+    console.log("User signed in, rendering grade tabs...");
     await loadFavorites(); // ✅ Load favorites first
     renderGradeTabs();     // ✅ tabs show
+    console.log("Grade tabs should now be visible");
     await loadStudents();
     startBehaviorListener();
     startTodayLogsListener();
