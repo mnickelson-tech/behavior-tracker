@@ -285,10 +285,18 @@ h2{ margin:0 0 10px; color: var(--primary); font-size: 18px; }
   background: #fff;
   cursor: pointer;
   font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+  transition: all 0.2s;
 }
-
+.grade-tab:hover{
+  border-color: var(--primary);
+  background: #f0f4ff;
+}
 .grade-tab.active{
-  border-color: #222;
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
 }
 
 .modal{
