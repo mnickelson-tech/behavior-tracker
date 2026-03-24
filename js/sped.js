@@ -57,7 +57,7 @@ const els = {
   applyBtn: document.getElementById("applyBtn"),
   resetBtn: document.getElementById("resetBtn"),
   kpiGrid: document.getElementById("kpiGrid"),
-  heatmap: document.getElementById("heatmap"),
+  notesPanel: document.getElementById("notesPanel"),
   trendCanvas: document.getElementById("trendChart"),
   topCanvas: document.getElementById("topBehaviorsChart"),
 };
@@ -398,51 +398,44 @@ function renderTopBehaviorsChart(logs) {
   });
 }
 
-function renderHeatmap(logs) {
-  // day-of-week (0..6) x hour (0..23)
-  const grid = Array.from({ length: 7 }, () => Array(24).fill(0));
+function renderNotes(logs) {
+  // Filter logs with notes
+  const logsWithNotes = logs
+    .filter(l => l.notes && l.notes.trim())
+    .sort((a, b) => {
+      // Sort by date descending (most recent first)
+      const aDate = toDateFromCreatedAt(a)?.getTime() || 0;
+      const bDate = toDateFromCreatedAt(b)?.getTime() || 0;
+      return bDate - aDate;
+    })
+    .slice(0, 50); // Show top 50 most recent notes
 
-  logs.forEach(l => {
-    const dt = toDateFromCreatedAt(l);
-    if (!dt) return;
-    grid[dt.getDay()][dt.getHours()] += 1;
-  });
-
-  let max = 0;
-  grid.forEach(row => row.forEach(v => { if (v > max) max = v; }));
-
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-  let html = `<div class="heatmap-grid">`;
-
-  // header
-  html += `<div class="heatmap-cell head"></div>`;
-  for (let h = 0; h < 24; h++) html += `<div class="heatmap-cell head">${h}</div>`;
-
-  for (let d = 0; d < 7; d++) {
-    html += `<div class="heatmap-cell head">${dayNames[d]}</div>`;
-    for (let h = 0; h < 24; h++) {
-      const v = grid[d][h];
-      const intensity = max ? (v / max) : 0;
-      const opacity = 0.08 + intensity * 0.92;
-      html += `
-        <div class="heatmap-cell box" title="${dayNames[d]} ${h}:00 — ${v}"
-             style="opacity:${opacity}">
-          ${v ? v : ""}
-        </div>
-      `;
-    }
+  if (!logsWithNotes.length) {
+    els.notesPanel.innerHTML = `<div class="muted">No notes recorded.</div>`;
+    return;
   }
 
-  html += `</div>`;
-  els.heatmap.innerHTML = html;
+  els.notesPanel.innerHTML = logsWithNotes.map(l => {
+    const dt = toDateFromCreatedAt(l);
+    const date = dt ? dt.toLocaleDateString("en-US") : (l.dayKey || "");
+    const time = dt ? dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "";
+
+    return `
+      <div style="border-left: 3px solid #007bff; padding: 12px; margin-bottom: 12px; background: #f8f9fa; border-radius: 4px;">
+        <div style="font-weight: 600; margin-bottom: 4px;">${l.studentName} — ${l.behaviorName}</div>
+        <div class="muted" style="font-size: 13px; margin-bottom: 8px;">${date} at ${time}</div>
+        <div style="font-style: italic; line-height: 1.4;">"${l.notes}"</div>
+      </div>
+    `;
+  }).join("");
 }
+
 
 function renderDashboard() {
   renderKpis(filteredLogs);
   renderTrendChart(filteredLogs);
   renderTopBehaviorsChart(filteredLogs);
-  renderHeatmap(filteredLogs);
+  renderNotes(filteredLogs);
 }
 
 /* ---------------------------
@@ -587,6 +580,6 @@ wireAuthUI({
 
     els.behaviorAdminList.innerHTML = "";
     els.kpiGrid.innerHTML = "";
-    els.heatmap.innerHTML = "";
+    els.notesPanel.innerHTML = "";
   }
 });
