@@ -60,6 +60,13 @@ const els = {
   notesPanel: document.getElementById("notesPanel"),
   trendCanvas: document.getElementById("trendChart"),
   topCanvas: document.getElementById("topBehaviorsChart"),
+  studentDetailModal: document.getElementById("studentDetailModal"),
+  studentDetailTitle: document.getElementById("studentDetailTitle"),
+  studentDetailStats: document.getElementById("studentDetailStats"),
+  studentDetailTimeline: document.getElementById("studentDetailTimeline"),
+  studentDetailBehaviors: document.getElementById("studentDetailBehaviors"),
+  studentDetailNotes: document.getElementById("studentDetailNotes"),
+  closeStudentDetailBtn: document.getElementById("closeStudentDetailBtn"),
 };
 
 /* ---------------------------
@@ -421,13 +428,115 @@ function renderNotes(logs) {
     const time = dt ? dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "";
 
     return `
-      <div style="border-left: 3px solid #007bff; padding: 12px; margin-bottom: 12px; background: #f8f9fa; border-radius: 4px;">
+      <div style="border-left: 3px solid #007bff; padding: 12px; margin-bottom: 12px; background: #f8f9fa; border-radius: 4px; cursor: pointer; transition: all 0.2s;" class="note-card" data-student="${encodeURIComponent(l.studentName)}">
         <div style="font-weight: 600; margin-bottom: 4px;">${l.studentName} — ${l.behaviorName}</div>
         <div class="muted" style="font-size: 13px; margin-bottom: 8px;">${date} at ${time}</div>
         <div style="font-style: italic; line-height: 1.4;">"${l.notes}"</div>
       </div>
     `;
   }).join("");
+
+  // Add click handlers to open student detail
+  els.notesPanel.querySelectorAll(".note-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const student = decodeURIComponent(card.dataset.student);
+      showStudentDetail(student, allLogs);
+    });
+    card.addEventListener("mouseover", () => {
+      card.style.background = "#eef2ff";
+      card.style.transform = "translateX(4px)";
+    });
+    card.addEventListener("mouseout", () => {
+      card.style.background = "#f8f9fa";
+      card.style.transform = "translateX(0)";
+    });
+  });
+}
+
+function showStudentDetail(studentName, logs) {
+  // Filter logs for this student
+  const studentLogs = logs.filter(l => l.studentName === studentName)
+    .sort((a, b) => {
+      const aDate = toDateFromCreatedAt(a)?.getTime() || 0;
+      const bDate = toDateFromCreatedAt(b)?.getTime() || 0;
+      return bDate - aDate;
+    });
+
+  if (!studentLogs.length) {
+    return;
+  }
+
+  // Stats
+  const totalIncidents = studentLogs.length;
+  const uniqueBehaviors = new Set(studentLogs.map(l => l.behaviorName || "Unknown")).size;
+  const firstDate = studentLogs[studentLogs.length - 1];
+  const lastDate = studentLogs[0];
+  const firstDateStr = toDateFromCreatedAt(firstDate)?.toLocaleDateString() || "";
+  const lastDateStr = toDateFromCreatedAt(lastDate)?.toLocaleDateString() || "";
+
+  els.studentDetailTitle.textContent = studentName;
+  els.studentDetailStats.textContent = `${totalIncidents} incidents | ${uniqueBehaviors} behavior types | ${firstDateStr} to ${lastDateStr}`;
+
+  // Timeline
+  const timeline = studentLogs.slice(0, 30).map(l => {
+    const dt = toDateFromCreatedAt(l);
+    const date = dt ? dt.toLocaleDateString("en-US") : (l.dayKey || "");
+    const time = dt ? dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "";
+    const noteHtml = l.notes ? `<div class="muted" style="margin-top: 6px; font-size: 12px; font-style: italic; padding: 6px; background: #f0f4ff; border-radius: 4px;">📝 ${l.notes}</div>` : "";
+
+    return `
+      <div style="border-left: 3px solid #667eea; padding: 12px; margin-bottom: 12px; background: #f8f9fa; border-radius: 4px;">
+        <div style="font-weight: 600;">${l.behaviorName}</div>
+        <div class="muted" style="font-size: 12px;">${date} at ${time} • ${l.teacherEmail || "Unknown teacher"}</div>
+        ${noteHtml}
+      </div>
+    `;
+  }).join("");
+
+  els.studentDetailTimeline.innerHTML = timeline || `<div class="muted">No incidents recorded.</div>`;
+
+  // Behavior breakdown
+  const behaviorCounts = new Map();
+  studentLogs.forEach(l => {
+    const key = l.behaviorName || "Unknown";
+    behaviorCounts.set(key, (behaviorCounts.get(key) || 0) + 1);
+  });
+
+  const behaviorBreakdown = [...behaviorCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([behavior, count]) => {
+      const pct = Math.round((count / totalIncidents) * 100);
+      return `
+        <div style="padding: 8px; background: #f8f9fa; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <span>${behavior}</span>
+          <span style="font-weight: 600;">${count} (${pct}%)</span>
+        </div>
+      `;
+    }).join("");
+
+  els.studentDetailBehaviors.innerHTML = behaviorBreakdown;
+
+  // Notable notes
+  const notes = studentLogs
+    .filter(l => l.notes && l.notes.trim())
+    .slice(0, 10)
+    .map(l => {
+      const dt = toDateFromCreatedAt(l);
+      const dateStr = dt ? dt.toLocaleDateString("en-US") : "";
+      return `
+        <div style="padding: 10px; background: #fffbf0; border-left: 3px solid #f6ad55; border-radius: 4px; margin-bottom: 8px;">
+          <div style="font-weight: 600; font-size: 12px; color: #c05621;">${l.behaviorName} • ${dateStr}</div>
+          <div style="margin-top: 4px; font-style: italic;">${l.notes}</div>
+        </div>
+      `;
+    }).join("");
+
+  els.studentDetailNotes.innerHTML = notes || `<div class="muted">No notes recorded for this student.</div>`;
+
+  // Show modal
+  els.studentDetailModal.style.display = "flex";
+  els.studentDetailModal.style.justifyContent = "center";
+  els.studentDetailModal.style.alignItems = "center";
 }
 
 
@@ -528,6 +637,35 @@ els.resetBtn?.addEventListener("click", async () => {
   els.teacherFilter.value = "";
   await loadDashboardData();
 });
+
+/* ---------------------------
+   Student Detail Modal handlers
+---------------------------- */
+
+els.closeStudentDetailBtn?.addEventListener("click", () => {
+  els.studentDetailModal.style.display = "none";
+});
+
+// Close modal when clicking outside the inner div
+els.studentDetailModal?.addEventListener("click", (e) => {
+  if (e.target === els.studentDetailModal) {
+    els.studentDetailModal.style.display = "none";
+  }
+});
+
+// Also make student names in the dashboard clickable
+function makeStudentNamesClickable(container) {
+  const studentElements = container.querySelectorAll("[data-student-click]");
+  studentElements.forEach(el => {
+    el.style.cursor = "pointer";
+    el.style.color = "#667eea";
+    el.style.textDecoration = "underline";
+    el.addEventListener("click", () => {
+      const student = el.dataset.studentClick;
+      showStudentDetail(student, allLogs);
+    });
+  });
+}
 
 /* ---------------------------
    Auth wiring
