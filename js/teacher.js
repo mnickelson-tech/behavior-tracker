@@ -138,12 +138,16 @@ function renderGradeTabs() {
 }
 
 function renderStudents() {
-  els.studentButtons.innerHTML = students.map(name => `
-    <button class="student-btn ${currentStudent === name ? "active" : ""}" data-student="${encodeURIComponent(name)}">
-      <span>${name}</span>
-      <span class="small-x" data-del="${encodeURIComponent(name)}">✕</span>
-    </button>
-  `).join("");
+  if (students.length === 0) {
+    els.studentButtons.innerHTML = `<div class="muted" style="padding: 10px;">No students in ${selectedGrade}. Add a student or switch grade.</div>`;
+  } else {
+    els.studentButtons.innerHTML = students.map(name => `
+      <button class="student-btn ${currentStudent === name ? "active" : ""}" data-student="${encodeURIComponent(name)}">
+        <span>${name}</span>
+        <span class="small-x" data-del="${encodeURIComponent(name)}">✕</span>
+      </button>
+    `).join("");
+  }
 
   els.studentButtons.querySelectorAll(".student-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
@@ -381,6 +385,8 @@ async function loadStudents() {
   const byGrade = data.studentsByGrade || {};
 
   students = byGrade[selectedGrade] || [];
+
+  console.log("loadStudents:", {selectedGrade, students, byGrade});
 
   renderStudents();
   updateStudentState();
