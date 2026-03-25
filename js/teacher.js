@@ -403,6 +403,7 @@ async function loadFavorites() {
   if (!user) return;
   
   try {
+    console.log("loadFavorites:", { uid: user.uid, email: user.email });
     const docRef = fb.doc(db, `teacherFavorites/${user.uid}`);
     const snap = await getDoc(docRef);
     
@@ -444,17 +445,16 @@ function startBehaviorListener() {
 function startTodayLogsListener() {
   if (unsubscribeTodayLogs) unsubscribeTodayLogs();
 
+  // Query only the current teacher's logs (permissions must pass rules)
   const q = fb.query(
     fb.collection(db, LOGS_COL),
+    fb.where("teacherUid", "==", user.uid),
+    fb.where("dayKey", "==", todayKey()),
     fb.orderBy("createdAt", "desc")
   );
 
   unsubscribeTodayLogs = fb.onSnapshot(q, (snap) => {
-    // only today's logs AND only this teacher (teacher view)
-    const docs = snap.docs
-      .filter(d => d.data()?.dayKey === todayKey())
-      .filter(d => d.data()?.teacherUid === user?.uid);
-
+    const docs = snap.docs;
     renderTodayLogs(docs.slice(0, 50));
   });
 }
