@@ -386,8 +386,6 @@ async function loadStudents() {
     const byGrade = data.studentsByGrade || {};
     students = byGrade[selectedGrade] || [];
 
-    console.log("loadStudents:", {selectedGrade, students, byGrade, uid: user.uid, email: user.email});
-
     renderStudents();
     updateStudentState();
   } catch (err) {
@@ -403,7 +401,6 @@ async function loadFavorites() {
   if (!user) return;
   
   try {
-    console.log("loadFavorites:", { uid: user.uid, email: user.email });
     const docRef = fb.doc(db, `teacherFavorites/${user.uid}`);
     const snap = await getDoc(docRef);
     
