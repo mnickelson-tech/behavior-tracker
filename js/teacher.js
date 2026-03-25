@@ -257,14 +257,30 @@ function renderBehaviors() {
       
       // Save to Firebase
       const docRef = fb.doc(db, `teacherFavorites/${user.uid}`);
-      await fb.setDoc(
-        docRef,
-        { favoriteBehaviors: favorites, updatedAt: fb.serverTimestamp() },
-        { merge: true }
-      );
-      
-      console.log("Saved to Firebase, re-rendering behaviors");
-      renderBehaviors();
+      try {
+        await fb.setDoc(
+          docRef,
+          { favoriteBehaviors: favorites, updatedAt: fb.serverTimestamp() },
+          { merge: true }
+        );
+
+        console.log("Saved to Firebase, re-rendering behaviors");
+        renderBehaviors();
+      } catch (err) {
+        console.error("Error saving favorites:", err);
+
+        // Revert local favorites state to previous value, so UI stays consistent.
+        if (favorites.includes(behaviorId)) {
+          favorites = favorites.filter(id => id !== behaviorId);
+          console.log("Reverted favorite add after save failure");
+        } else {
+          favorites.push(behaviorId);
+          console.log("Reverted favorite remove after save failure");
+        }
+
+        alert("Unable to save favorites. Check your Firestore security rules and sign-in status.");
+        renderBehaviors();
+      }
     });
   });
 
