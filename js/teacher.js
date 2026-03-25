@@ -379,17 +379,24 @@ async function loadStudents() {
   if (!user) return;
 
   const docRef = fb.doc(db, STUDENTS_DOC(user.uid));
-  const snap = await getDoc(docRef);
 
-  const data = snap.exists() ? (snap.data() || {}) : {};
-  const byGrade = data.studentsByGrade || {};
+  try {
+    const snap = await getDoc(docRef);
+    const data = snap.exists() ? (snap.data() || {}) : {};
+    const byGrade = data.studentsByGrade || {};
+    students = byGrade[selectedGrade] || [];
 
-  students = byGrade[selectedGrade] || [];
+    console.log("loadStudents:", {selectedGrade, students, byGrade, uid: user.uid, email: user.email});
 
-  console.log("loadStudents:", {selectedGrade, students, byGrade});
-
-  renderStudents();
-  updateStudentState();
+    renderStudents();
+    updateStudentState();
+  } catch (err) {
+    console.error("Error loading students", err, { uid: user.uid, email: user.email });
+    alert("Could not load student list. Check Firestore rules and console for details.");
+    students = [];
+    renderStudents();
+    updateStudentState();
+  }
 }
 
 async function loadFavorites() {
