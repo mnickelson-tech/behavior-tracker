@@ -46,6 +46,10 @@ const els = {
   notesModalTitle: document.getElementById("notesModalTitle"),
   notesSaveBtn: document.getElementById("notesSaveBtn"),
   notesCancelBtn: document.getElementById("notesCancelBtn"),
+  exportStudentFilter: document.getElementById("exportStudentFilter"),
+  exportStartDate: document.getElementById("exportStartDate"),
+  exportEndDate: document.getElementById("exportEndDate"),
+  exportBtn: document.getElementById("exportBtn"),
 };
 
 function normalizeStudentInitials(input) {
@@ -148,6 +152,8 @@ function renderStudents() {
       </button>
     `).join("");
   }
+
+  updateExportStudentList();
 
   els.studentButtons.querySelectorAll(".student-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
@@ -517,6 +523,142 @@ els.notesModal.addEventListener("click", (e) => {
   }
 });
 
+// Export functionality
+function setExportDateDefaults() {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 30); // last 30 days
+  
+  els.exportStartDate.value = todayKey().substring(0, 10);
+  els.exportEndDate.value = todayKey().substring(0, 10);
+  
+  // Actually set to 30 days back for start
+  const startStr = String(start.getFullYear()) + 
+    "-" + String(start.getMonth() + 1).padStart(2, "0") + 
+    "-" + String(start.getDate()).padStart(2, "0");
+  els.exportStartDate.value = startStr;
+}
+
+function updateExportStudentList() {
+  const uniqueStudents = [...new Set(students)].sort();
+  const current = els.exportStudentFilter.value;
+  
+  els.exportStudentFilter.innerHTML = `<option value="">All students</option>` +
+    uniqueStudents.map(s => `<option value="${encodeURIComponent(s)}">${s}</option>`).join("");
+  
+  if (current) els.exportStudentFilter.value = current;
+}
+
+function generateCSV(logs) {
+  const headers = ["Date", "Time", "Student", "Behavior", "Category", "Notes"];
+  const rows = logs.map(l => {
+    const createdAt = l.createdAt?.toDate ? l.createdAt.toDate() : new Date();
+    const date = createdAt.toLocaleDateString("en-US");
+    const time = createdAt.toLocaleTimeString("en-US", { 
+      hour: "2-digit", 
+      minute: "2-digit", 
+      second: "2-digit" 
+    });
+    
+    return [
+      date,
+      time,
+      l.studentName || "",
+      l.behaviorName || "",
+      l.category || "",
+      (l.notes || "").replace(/"/g, '""')
+    ];
+  });
+  
+  // Build CSV
+  const csvContent = [
+    headers.map(h => `"${h}"`).join(","),
+    ...rows.map(r => r.map(cell => `"${cell}"`).join(","))
+  ].join("\n");
+  
+  return csvContent;
+}
+
+function downloadCSV(csvContent, filename) {
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = "hidden";
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+els.exportBtn.addEventListener("click", async () => {
+  if (!user) {
+    alert("Please sign in first.");
+    return;
+  }
+  
+  const startDateStr = els.exportStartDate.value;
+  const endDateStr = els.exportEndDate.value;
+  const studentFilter = decodeURIComponent(els.exportStudentFilter.value || "");
+  
+  if (!startDateStr || !endDateStr) {
+    alert("Please select both start and end dates.");
+    return;
+  }
+  
+  // Parse dates
+  const [startY, startM, startD] = startDateStr.split("-").map(Number);
+  const [endY, endM, endD] = endDateStr.split("-").map(Number);
+  
+  const startDt = new Date(startY, startM - 1, startD);
+  const endDt = new Date(endY, endM - 1, endD);
+  endDt.setHours(23, 59, 59, 999);
+  
+  if (startDt > endDt) {
+    alert("Start date must be before end date.");
+    return;
+  }
+  
+  try {
+    const startTs = fb.Timestamp.fromDate(startDt);
+    const endTs = fb.Timestamp.fromDate(endDt);
+    
+    // Query logs for this teacher in date range
+    const q = fb.query(
+      fb.collection(db, LOGS_COL),
+      fb.where("teacherUid", "==", user.uid),
+      fb.where("createdAt", ">=", startTs),
+      fb.where("createdAt", "<=", endTs)
+    );
+    
+    const snap = await fb.getDocs(q);
+    const logs = snap.docs.map(d => d.data()).sort((a, b) => {
+      const aTime = a.createdAt?.toDate?.() || new Date();
+      const bTime = b.createdAt?.toDate?.() || new Date();
+      return aTime - bTime;
+    });
+    
+    // Filter by student if selected
+    const filtered = studentFilter 
+      ? logs.filter(l => l.studentName === studentFilter)
+      : logs;
+    
+    if (filtered.length === 0) {
+      alert("No logs found for the selected criteria.");
+      return;
+    }
+    
+    const csvContent = generateCSV(filtered);
+    const filename = `behavior_export_${startDateStr}_${endDateStr}.csv`;
+    downloadCSV(csvContent, filename);
+  } catch (err) {
+    console.error("Error exporting data:", err);
+    alert("Error exporting data. Check console for details.");
+  }
+});
+
 // Auth wiring
 wireAuthUI({
   isAdminEmail: () => false,
@@ -535,6 +677,8 @@ wireAuthUI({
     renderGradeTabs();     // ✅ tabs show
     console.log("Grade tabs should now be visible");
     await loadStudents();
+    setExportDateDefaults();
+    updateExportStudentList();
     startBehaviorListener();
     startTodayLogsListener();
   },

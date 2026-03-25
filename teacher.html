@@ -64,7 +64,29 @@
         <h2>Today’s Log</h2>
         <div id="todayLog" class="log-list"></div>
       </section>
-    </main>
+      <section class="card">
+        <h2>Export Data</h2>
+        <div class="row" style="flex-wrap: wrap; gap: 10px; align-items: flex-end;">
+          <div>
+            <div class="muted" style="margin-bottom: 6px;">Student</div>
+            <select id="exportStudentFilter" class="input" style="min-width: 200px;">
+              <option value="">All students</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="muted" style="margin-bottom: 6px;">Start Date</div>
+            <input id="exportStartDate" class="input" type="date" />
+          </div>
+
+          <div>
+            <div class="muted" style="margin-bottom: 6px;">End Date</div>
+            <input id="exportEndDate" class="input" type="date" />
+          </div>
+
+          <button id="exportBtn" class="btn btn-green">Export to CSV</button>
+        </div>
+      </section>    </main>
   </div>
   <!-- 📝 Notes Modal -->
   <div id="notesModal" class="modal" style="display:none;">
