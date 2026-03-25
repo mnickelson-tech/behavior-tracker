@@ -26,6 +26,12 @@ let todayLogDocs = [];
 let pendingNoteDocId = null;
 let favorites = []; // Array of behavior IDs that are favorited
 
+const TEACHER_EMAIL_SUFFIX = "@conroeisd.net";
+
+function isTeacherEmail(email) {
+  return typeof email === "string" && email.trim().toLowerCase().endsWith(TEACHER_EMAIL_SUFFIX);
+}
+
 const els = {
   studentButtons: document.getElementById("studentButtons"),
   studentInput: document.getElementById("studentInput"),
@@ -505,6 +511,14 @@ els.notesModal.addEventListener("click", (e) => {
 wireAuthUI({
   isAdminEmail: () => false,
   onSignedIn: async (u) => {
+    const email = (u.email || "").toLowerCase();
+    if (!isTeacherEmail(email)) {
+      alert("Access denied: teacher access is limited to @conroeisd.net email addresses.");
+      console.warn("Blocked non-conroeisd email from teacher area:", email);
+      await authFns.signOut(auth);
+      return;
+    }
+
     user = u;
     console.log("User signed in, rendering grade tabs...");
     await loadFavorites(); // ✅ Load favorites first
