@@ -89,12 +89,20 @@ function updateStudentState() {
     if (!currentStudent) {
       btn.style.opacity = "0.5";
       btn.style.cursor = "not-allowed";
-      btn.style.pointerEvents = "none";
+      // Keep pointer events enabled on the behavior container so children (star) remain clickable
+      btn.style.pointerEvents = "auto";
+      // But add a visual and functional guard in click handler (see renderBehaviors)
     } else {
       btn.style.opacity = "1";
       btn.style.cursor = "pointer";
       btn.style.pointerEvents = "auto";
     }
+
+    // Ensure the star toggle is always clickable
+    btn.querySelectorAll(".star-btn").forEach(star => {
+      star.style.pointerEvents = "auto";
+      star.style.cursor = "pointer";
+    });
   });
 }
 
