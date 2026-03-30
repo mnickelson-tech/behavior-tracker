@@ -11,6 +11,9 @@ const SPED_ADMIN_EMAILS = [
   "mhenthorn@conroeisd.net",
   "dpreuss@conroeisd.net",
   "mnickelson@conroeisd.net"
+  "cghaymark@conroeisd.net"
+  "labrown@conroeisd.net"
+  "taisierra@conroeisd.net"
 ].map(e => e.toLowerCase());
 
 function isAdminEmail(email) {
