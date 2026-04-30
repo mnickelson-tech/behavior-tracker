@@ -4,6 +4,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
@@ -59,6 +61,8 @@ export const fb = {
 
 export const authFns = {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged,
   signOut
 };
