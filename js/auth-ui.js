@@ -1,15 +1,40 @@
 // js/auth-ui.js
 import { auth, provider, authFns } from "./firebase-init.js";
 
-export function wireAuthUI({ onSignedIn, onSignedOut, isAdminEmail }) {
+export function wireAuthUI({ onSignedIn, onSignedOut, isAdminEmail }) {␊
   const userLabel = document.getElementById("userLabel");
   const userRoleLabel = document.getElementById("userRoleLabel");
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  loginBtn.addEventListener("click", async () => {
-    await authFns.signInWithPopup(auth, provider);
+    // Complete any redirect sign-in attempt (fallback for popup-blocked browsers).
+  authFns.getRedirectResult?.(auth).catch((err) => {
+    console.error("Redirect sign-in failed:", err);
+    userRoleLabel.textContent = "Role: Sign-in failed (redirect)";
   });
+
+  loginBtn.addEventListener("click", async () => {
+    loginBtn.disabled = true;
+    try {
+      await authFns.signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error("Popup sign-in failed:", err);
+      const code = err?.code || "";
+      // Common browser issue: popup blocked or immediately closed.
+      if (code.includes("popup")) {
+        try {
+          await authFns.signInWithRedirect?.(auth, provider);
+          return;
+        } catch (redirectErr) {
+          console.error("Redirect fallback failed:", redirectErr);
+        }
+      }
+      userRoleLabel.textContent = "Role: Sign-in failed";
+      alert(`Sign in failed: ${code || err?.message || "Unknown error"}`);
+    } finally {
+      loginBtn.disabled = false;
+    }
+  });                                                                     
 
   logoutBtn.addEventListener("click", async () => {
     await authFns.signOut(auth);
