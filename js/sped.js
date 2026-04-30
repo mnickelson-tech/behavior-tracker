@@ -6,15 +6,15 @@ import { wireAuthUI } from "./auth-ui.js";
  * ✅ SPED Admin allowlist
  * Make sure commas are between emails.
  */
-const SPED_ADMIN_EMAILS = [
-  "ektodd@conroeisd.net",
-  "mhenthorn@conroeisd.net",
-  "dpreuss@conroeisd.net",
-  "mnickelson@conroeisd.net"
-  "cghaymark@conroeisd.net"
-  "labrown@conroeisd.net"
-  "taisierra@conroeisd.net"
-].map(e => e.toLowerCase());
+const SPED_ADMIN_EMAILS = [␊
+  "ektodd@conroeisd.net",␊
+  "mhenthorn@conroeisd.net",␊
+  "dpreuss@conroeisd.net",␊
+  "mnickelson@conroeisd.net",
+  "cghaymark@conroeisd.net",
+  "labrown@conroeisd.net",
+  "taisierra@conroeisd.net",
+].map(e => e.toLowerCase());␊
 
 function isAdminEmail(email) {
   return SPED_ADMIN_EMAILS.includes((email || "").toLowerCase());
