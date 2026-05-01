@@ -1,7 +1,7 @@
 // js/auth-ui.js
 import { auth, provider, authFns } from "./firebase-init.js";
 
-export function wireAuthUI({ onSignedIn, onSignedOut, isAdminEmail }) {␊
+export function wireAuthUI({ onSignedIn, onSignedOut, isAdminEmail })
   const userLabel = document.getElementById("userLabel");
   const userRoleLabel = document.getElementById("userRoleLabel");
   const loginBtn = document.getElementById("loginBtn");
