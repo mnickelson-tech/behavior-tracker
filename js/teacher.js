@@ -1,5 +1,5 @@
 // js/teacher.js
-import { db, fb } from "./firebase-init.js";
+import { auth, authFns, db, fb } from "./firebase-init.js";
 import { wireAuthUI } from "./auth-ui.js";
 
 // ✅ Your fb wrapper doesn't include getDoc, so import it directly
