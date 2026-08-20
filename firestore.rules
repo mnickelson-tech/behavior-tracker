@@ -17,6 +17,10 @@ service cloud.firestore {
         'mhenthorn@conroeisd.net',
         'dpreuss@conroeisd.net',
         'mnickelson@conroeisd.net'
+        'speeler@conroeisd.net'
+        'cghaymark@conroeisd.net'
+        'labrown@conroeisd.net'
+        'taisierra@conroeisd.net'
       ].includes(request.auth.token.email.toLowerCase());
     }
 
