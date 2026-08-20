@@ -16,10 +16,10 @@ service cloud.firestore {
       return isSignedIn() && [        'ektodd@conroeisd.net',
         'mhenthorn@conroeisd.net',
         'dpreuss@conroeisd.net',
-        'mnickelson@conroeisd.net'
-        'speeler@conroeisd.net'
-        'cghaymark@conroeisd.net'
-        'labrown@conroeisd.net'
+        'mnickelson@conroeisd.net',
+        'speeler@conroeisd.net',
+        'cghaymark@conroeisd.net',
+        'labrown@conroeisd.net',
         'taisierra@conroeisd.net'
       ].includes(request.auth.token.email.toLowerCase());
     }
@@ -32,11 +32,26 @@ service cloud.firestore {
       allow read, write: if isTeacher() && request.auth.uid == uid;
     }
 
-    match /logs/{logId} {
-      allow create: if isTeacher() && request.auth.uid != null;
-      allow read: if isSpedAdmin() || (isTeacher() && resource.data.teacherUid == request.auth.uid);
-      allow update, delete: if isSpedAdmin();
-    }
+  match /logs/{logId} {
+
+  allow create: if isTeacher()
+    && request.resource.data.teacherUid == request.auth.uid;
+
+  allow read: if isSpedAdmin()
+    || (isTeacher() && resource.data.teacherUid == request.auth.uid);
+
+  // Teachers can ONLY change the notes field on their own logs
+  allow update: if isSpedAdmin()
+    || (
+      isTeacher()
+      && resource.data.teacherUid == request.auth.uid
+      && request.resource.data.diff(resource.data)
+          .affectedKeys()
+          .hasOnly(['notes'])
+    );
+
+  allow delete: if isSpedAdmin();
+}
 
     match /behaviors/{behaviorId} {
       // Public behavior list for all signed-in teachers; admins can also write.
